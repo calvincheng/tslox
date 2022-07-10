@@ -4,6 +4,8 @@ import Scanner from "./Scanner";
 import { readLine } from "./utils";
 
 class Lox {
+  hadError: boolean = false;
+
   constructor(source?: string) {
     if (source) {
       this.runFile(source);
@@ -15,6 +17,9 @@ class Lox {
   private runFile(path: string): void {
     const bytes: Buffer = fs.readFileSync(path);
     this.run(bytes.toString());
+
+    // Indicate an error in the exit code
+    if (this.hadError) process.exit(65);
   }
 
   /**
@@ -31,6 +36,7 @@ class Lox {
       const line = await readLine(input, "> ");
       if (line === null) break;
       this.run(line);
+      this.hadError = false;
     }
   }
 
@@ -38,6 +44,15 @@ class Lox {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
     tokens.forEach(console.log);
+  }
+
+  error(line: number, message: string): void {
+    this.report(line, "", message);
+  }
+
+  private report(line: number, where: string, message: string): void {
+    console.log(`[line ${line}] Error${where}: ${message}`);
+    this.hadError = true;
   }
 }
 
