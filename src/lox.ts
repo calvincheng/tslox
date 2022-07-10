@@ -1,12 +1,7 @@
 import fs from "fs";
 import readline from "node:readline";
 import Scanner from "./Scanner";
-
-function readLine(input: any, prompt = "") {
-  return new Promise<string | null>((rsov) => {
-    input.question(prompt, (line: string | null) => rsov(line));
-  });
-}
+import { readLine } from "./utils";
 
 class Lox {
   constructor(source?: string) {
