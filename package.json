@@ -1,0 +1,14 @@
+{
+  "name": "tslox",
+  "version": "1.0.0",
+  "description": "A TypeScript implementation of the Lox language from \"Crafting Interpreters\" by Robert Nystrom",
+  "main": "index.ts",
+  "author": "Calvin Cheng",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "ts-node": "^10.8.2",
+    "typescript": "^4.7.4"
+  }
+}
