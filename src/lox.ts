@@ -47,7 +47,7 @@ class Lox {
   private run(source: string): void {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
-    tokens.forEach((token) => console.log(token.lexeme));
+    tokens.forEach((token) => console.log(token));
   }
 }
 
