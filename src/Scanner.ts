@@ -97,10 +97,35 @@ export default class Scanner {
       case "\n":
         this.line += 1;
         break;
-
+      // String literals
+      case '"':
+        this.string();
+        break;
       default:
         throw new LoxError(`Unexpected character '${c}'.`, this.line);
     }
+  }
+
+  /**
+   * Consumes characters until the terminating " is reached.
+   * Multi-line strings are supported.
+   * Running out of input before the string is closed throws an error.
+   */
+  private string(): void {
+    while (this.peek() !== '"' && !this.isAtEnd()) {
+      if (this.peek() === "\n") this.line += 1;
+      this.advance();
+    }
+
+    if (this.isAtEnd()) {
+      throw new LoxError("Unterminated string.", this.line);
+    }
+
+    // Consume the closing "
+    this.advance();
+
+    const value = this.source.slice(this.start + 1, this.current - 1);
+    this.addTokenWithLiteral(TokenType.STRING, value);
   }
 
   /**
