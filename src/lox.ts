@@ -24,8 +24,7 @@ class Lox {
 
   /**
    * Runs lox in an interactive prompt (REPL)
-   * ---
-   * REPL := Read, Evaluate, Print, Loop
+   * REPL: Read, Evaluate, Print, Loop
    */
   private async runPrompt(): Promise<void> {
     const input = readline.createInterface({
@@ -41,9 +40,11 @@ class Lox {
   }
 
   private run(source: string): void {
-    const scanner = new Scanner(source);
+    const scanner = new Scanner(source, (line, message) =>
+      this.error(line, message)
+    );
     const tokens = scanner.scanTokens();
-    tokens.forEach(console.log);
+    tokens.forEach((token) => console.log(token.lexeme));
   }
 
   error(line: number, message: string): void {
