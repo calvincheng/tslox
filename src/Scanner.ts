@@ -10,6 +10,26 @@ export default class Scanner {
   private current = 0; // Index of current character being considered
   private line = 1; // Line number `current` is on
 
+  // Set of reserved words
+  private keywords: { [keyword: string]: TokenType } = {
+    and: TokenType.AND,
+    class: TokenType.CLASS,
+    else: TokenType.ELSE,
+    false: TokenType.FALSE,
+    for: TokenType.FOR,
+    fun: TokenType.FUN,
+    if: TokenType.IF,
+    nil: TokenType.NIL,
+    or: TokenType.OR,
+    print: TokenType.PRINT,
+    return: TokenType.RETURN,
+    super: TokenType.SUPER,
+    this: TokenType.THIS,
+    true: TokenType.TRUE,
+    var: TokenType.VAR,
+    while: TokenType.WHILE,
+  };
+
   constructor(source: string) {
     this.source = source;
   }
@@ -103,8 +123,16 @@ export default class Scanner {
         break;
       default:
         if (this.isDigit(c)) this.number();
+        else if (this.isAlpha(c)) this.identifier();
         else throw new LoxError(`Unexpected character '${c}'.`, this.line);
     }
+  }
+
+  private identifier(): void {
+    while (this.isAlphaNumeric(this.peek())) this.advance();
+    const text = this.source.slice(this.start, this.current);
+    const type = this.keywords[text] ?? TokenType.IDENTIFIER;
+    this.addToken(type);
   }
 
   /**
@@ -178,10 +206,24 @@ export default class Scanner {
   }
 
   /**
-   * Checks if a character is a digit (/[0-9]/)
+   * Checks if a character is a digit
    */
   private isDigit(c: string): boolean {
     return /^[0-9]{1}$/.test(c);
+  }
+
+  /**
+   * Checks if a character is a letter or an underscore
+   */
+  private isAlpha(c: string): boolean {
+    return /^[a-zA-Z_]{1}$/.test(c);
+  }
+
+  /**
+   * Checks if a character is alphanumeric
+   */
+  private isAlphaNumeric(c: string): boolean {
+    return this.isAlpha(c) || this.isDigit(c);
   }
 
   /**
