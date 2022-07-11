@@ -1,5 +1,6 @@
 import Token from "./Token";
 import { TokenType } from "./TokenType";
+import { LoxError } from "./ErrorHandler";
 
 export default class Scanner {
   private source: string;
@@ -9,14 +10,8 @@ export default class Scanner {
   private current = 0; // Index of current character being considered
   private line = 1; // Line number `current` is on
 
-  private onError = (_line: number, _message: string) => {};
-
-  constructor(
-    source: string,
-    onError: (_line: number, _message: string) => void
-  ) {
+  constructor(source: string) {
     this.source = source;
-    this.onError = onError;
   }
 
   /**
@@ -70,8 +65,7 @@ export default class Scanner {
         this.addToken(TokenType.STAR);
         break;
       default:
-        this.onError(this.line, "Unexpected character.");
-        break;
+        throw new LoxError(`Unexpected character '${c}'.`, this.line);
     }
   }
 
