@@ -173,7 +173,7 @@ export default class Scanner {
     this.addTokenWithLiteral(type, null);
   }
 
-  private addTokenWithLiteral(type: TokenType, literal: string | null): void {
+  private addTokenWithLiteral(type: TokenType, literal: any): void {
     const text = this.source.slice(this.start, this.current);
     this.tokens.push(new Token(type, text, literal, this.line));
   }
