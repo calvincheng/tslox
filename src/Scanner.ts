@@ -81,6 +81,23 @@ export default class Scanner {
       case "<":
         this.addToken(this.match("=") ? TokenType.LESS_EQUAL : TokenType.LESS);
         break;
+      case "/":
+        if (this.match("/")) {
+          // Consume all characters in a comment until the end of the line
+          while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
+        } else {
+          this.addToken(TokenType.SLASH);
+        }
+        break;
+      // Whitespace
+      case " ":
+      case "\r":
+      case "\t":
+        break;
+      case "\n":
+        this.line += 1;
+        break;
+
       default:
         throw new LoxError(`Unexpected character '${c}'.`, this.line);
     }
@@ -96,6 +113,15 @@ export default class Scanner {
 
     this.current += 1;
     return true;
+  }
+
+  /**
+   * Performs a one-character lookahead.
+   * Identifies the next character without consuming it.
+   */
+  private peek(): string {
+    if (this.isAtEnd()) return "\0";
+    return this.source.charAt(this.current);
   }
 
   /**
