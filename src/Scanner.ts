@@ -102,7 +102,8 @@ export default class Scanner {
         this.string();
         break;
       default:
-        throw new LoxError(`Unexpected character '${c}'.`, this.line);
+        if (this.isDigit(c)) this.number();
+        else throw new LoxError(`Unexpected character '${c}'.`, this.line);
     }
   }
 
@@ -129,6 +130,24 @@ export default class Scanner {
   }
 
   /**
+   * Consumes the characters of a number literal.
+   * Handles both floating type and integer numbers.
+   */
+  private number(): void {
+    while (this.isDigit(this.peek())) this.advance();
+
+    // Handle decimal points - the . is only consumed if it is followed by a digit
+    if (this.peek() === "." && this.isDigit(this.peekNext())) {
+      // Consume the .
+      this.advance();
+      while (this.isDigit(this.peek())) this.advance();
+    }
+
+    const value = this.source.slice(this.start, this.current);
+    this.addTokenWithLiteral(TokenType.NUMBER, Number(value));
+  }
+
+  /**
    * A conditional variant of advance().
    * Only consumes the current character if it’s expected.
    */
@@ -147,6 +166,22 @@ export default class Scanner {
   private peek(): string {
     if (this.isAtEnd()) return "\0";
     return this.source.charAt(this.current);
+  }
+
+  /**
+   * Performs a two-character lookahead.
+   * Identifies 2 characters ahead without consuming it.
+   */
+  private peekNext(): string {
+    if (this.current + 1 >= this.source.length) return "\0";
+    return this.source.charAt(this.current + 1);
+  }
+
+  /**
+   * Checks if a character is a digit (/[0-9]/)
+   */
+  private isDigit(c: string): boolean {
+    return /^[0-9]{1}$/.test(c);
   }
 
   /**
