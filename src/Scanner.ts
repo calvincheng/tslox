@@ -105,6 +105,8 @@ export default class Scanner {
         if (this.match("/")) {
           // Consume all characters in a comment until the end of the line
           while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
+        } else if (this.match("*")) {
+          this.blockComment();
         } else {
           this.addToken(TokenType.SLASH);
         }
@@ -173,6 +175,22 @@ export default class Scanner {
 
     const value = this.source.slice(this.start, this.current);
     this.addTokenWithLiteral(TokenType.NUMBER, Number(value));
+  }
+
+  /**
+   * Consumes the characters of a block comment.
+   * Handles both single and multi-line blocks.
+   * Unterminated block comments are allowed.
+   */
+  private blockComment(): void {
+    while (this.peek() !== "*" && this.peekNext() !== "/" && !this.isAtEnd()) {
+      if (this.peek() === "\n") this.line += 1;
+      this.advance();
+    }
+
+    // Consume the closing */
+    this.advance();
+    this.advance();
   }
 
   /**
