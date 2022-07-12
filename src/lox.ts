@@ -1,14 +1,12 @@
 import fs from "fs";
 import readline from "node:readline";
 import Scanner from "./Scanner";
-
-function readLine(input: any, prompt = "") {
-  return new Promise<string | null>((rsov) => {
-    input.question(prompt, (line: string | null) => rsov(line));
-  });
-}
+import ErrorHandler, { LoxError } from "./ErrorHandler";
+import { readLine } from "./utils";
 
 class Lox {
+  errorHandler = new ErrorHandler();
+
   constructor(source?: string) {
     if (source) {
       this.runFile(source);
@@ -17,17 +15,19 @@ class Lox {
     }
   }
 
-  runFile(path: string): void {
+  private runFile(path: string): void {
     const bytes: Buffer = fs.readFileSync(path);
     this.run(bytes.toString());
+
+    // Indicate an error in the exit code
+    if (this.errorHandler.hadError) process.exit(65);
   }
 
   /**
    * Runs lox in an interactive prompt (REPL)
-   * ---
-   * REPL := Read, Evaluate, Print, Loop
+   * REPL: Read, Evaluate, Print, Loop
    */
-  async runPrompt(): Promise<void> {
+  private async runPrompt(): Promise<void> {
     const input = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -35,14 +35,19 @@ class Lox {
     while (true) {
       const line = await readLine(input, "> ");
       if (line === null) break;
-      this.run(line);
+      try {
+        this.run(line);
+      } catch (err) {
+        this.errorHandler.report(err as LoxError);
+      }
+      this.errorHandler.hadError = false;
     }
   }
 
-  run(source: string): void {
+  private run(source: string): void {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
-    tokens.forEach(console.log);
+    tokens.forEach((token) => console.log(token));
   }
 }
 
