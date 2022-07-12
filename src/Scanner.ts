@@ -102,14 +102,9 @@ export default class Scanner {
         this.addToken(this.match("=") ? TokenType.LESS_EQUAL : TokenType.LESS);
         break;
       case "/":
-        if (this.match("/")) {
-          // Consume all characters in a comment until the end of the line
-          while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
-        } else if (this.match("*")) {
-          this.blockComment();
-        } else {
-          this.addToken(TokenType.SLASH);
-        }
+        if (this.match("/")) this.singleLineComment();
+        else if (this.match("*")) this.blockComment();
+        else this.addToken(TokenType.SLASH);
         break;
       // Whitespace
       case " ":
@@ -175,6 +170,14 @@ export default class Scanner {
 
     const value = this.source.slice(this.start, this.current);
     this.addTokenWithLiteral(TokenType.NUMBER, Number(value));
+  }
+
+  /**
+   * Consumes the characters of a single-line comment
+   */
+  private singleLineComment(): void {
+    // Consume all characters in a comment until the end of the line
+    while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
   }
 
   /**
