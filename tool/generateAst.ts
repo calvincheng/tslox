@@ -47,6 +47,9 @@ function run(outputDir: string) {
     await defineBase(baseName);
     await writeLine();
 
+    await defineVisitor(baseName, types);
+    await writeLine();
+
     for (let [className, fields] of Object.entries(types)) {
       await defineType(baseName, className, fields);
       await writeLine();
@@ -57,7 +60,25 @@ function run(outputDir: string) {
    * Helper function that writes the base interface to file
    */
   async function defineBase(baseName: string) {
-    await writeLine(`export interface ${baseName} {}`);
+    await writeLine(`export interface ${baseName} {`);
+    await writeLine(`  accept: <R>(visitor: Visitor<R>) => R;`);
+    await writeLine(`}`);
+  }
+
+  /**
+   * Helper function that writes the visitor interface to file
+   */
+  async function defineVisitor(
+    baseName: string,
+    types: { [type: string]: Field[] }
+  ): Promise<void> {
+    await writeLine(`export interface Visitor<R> {`);
+    for (let [className] of Object.entries(types)) {
+      await writeLine(
+        `  visit${className}${baseName}: (${baseName.toLowerCase()}: ${className}) => R;`
+      );
+    }
+    await writeLine(`}`);
   }
 
   /**
@@ -89,6 +110,11 @@ function run(outputDir: string) {
       await writeLine(`    this.${name} = ${name};`);
     }
     await writeLine("  }");
+
+    await writeLine();
+    await writeLine(`  accept<R>(visitor: Visitor<R>): R {`);
+    await writeLine(`    return visitor.visit${className}${baseName}(this);`);
+    await writeLine(`  }`);
 
     // End class definition
     await writeLine("}");
