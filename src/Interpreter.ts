@@ -45,10 +45,10 @@ export class Interpreter implements Visitor<LoxObject> {
         this.checkNumberOperands(expr.operator, left, right);
         return Number(left) - Number(right);
       case TokenType.PLUS:
-        if (left instanceof Number && right instanceof Number) {
+        if (typeof left === "number" && typeof right === "number") {
           return Number(left) + Number(right);
         }
-        if (left instanceof String && right instanceof String) {
+        if (typeof left === "string" && typeof right === "string") {
           return String(left) + String(right);
         }
         this.error(
@@ -87,7 +87,7 @@ export class Interpreter implements Visitor<LoxObject> {
 
   private isTruthy(object: LoxObject): boolean {
     if (object == null) return false;
-    if (object instanceof Boolean) return Boolean(object);
+    if (typeof object === "boolean") return Boolean(object);
     return true;
   }
 
@@ -104,7 +104,7 @@ export class Interpreter implements Visitor<LoxObject> {
   // Private methods -- detecting runtime errors
 
   private checkNumberOperand(operator: Token, operand: LoxObject) {
-    if (operand instanceof Number) return;
+    if (typeof operand === "number") return;
     this.error(operator, "Operand must be a number.");
   }
 
@@ -113,7 +113,7 @@ export class Interpreter implements Visitor<LoxObject> {
     left: LoxObject,
     right: LoxObject
   ) {
-    if (left instanceof Number && right instanceof Number) return;
+    if (typeof left === "number" && typeof right === "number") return;
     this.error(operator, "Operands must be numbers.");
   }
 
