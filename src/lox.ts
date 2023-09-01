@@ -1,7 +1,9 @@
 import fs from "fs";
 import readline from "node:readline";
 import Scanner from "./Scanner";
-import ErrorHandler, { LoxError } from "./ErrorHandler";
+import { Parser } from "./Parser";
+import { AstPrinter, AstRpnPrinter } from "./AstPrinter";
+import ErrorHandler from "./ErrorHandler";
 import { readLine } from "./utils";
 
 class Lox {
@@ -38,7 +40,7 @@ class Lox {
       try {
         this.run(line);
       } catch (err) {
-        this.errorHandler.report(err as LoxError);
+        this.errorHandler.report(err as Error);
       }
       this.errorHandler.hadError = false;
     }
@@ -47,7 +49,16 @@ class Lox {
   private run(source: string): void {
     const scanner = new Scanner(source);
     const tokens = scanner.scanTokens();
-    tokens.forEach((token) => console.log(token));
+
+    const parser = new Parser(tokens, (err) => this.errorHandler.report(err));
+    const expression = parser.parse();
+
+    // Stop if there was a syntax error
+    if (this.errorHandler.hadError) return;
+
+    if (expression) {
+      console.log(new AstPrinter().print(expression));
+    }
   }
 }
 
