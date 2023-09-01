@@ -11,7 +11,7 @@ import { RuntimeError } from "./ErrorHandler";
 
 type LoxObject = Object | null;
 
-export class Interpreter implements Visitor<LoxObject> {
+export default class Interpreter implements Visitor<LoxObject> {
   private onError: (err: RuntimeError) => void;
 
   visitLiteralExpr(expr: Literal): LoxObject {
