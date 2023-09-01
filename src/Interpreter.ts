@@ -133,8 +133,12 @@ export default class Interpreter implements Visitor<LoxObject> {
     left: LoxObject,
     right: LoxObject
   ) {
-    if (typeof left === "number" && typeof right === "number") return;
-    this.error(operator, "Operands must be numbers.");
+    if (!(typeof left === "number" && typeof right === "number")) {
+      this.error(operator, "Operands must be numbers.");
+    }
+    if (Number(right) === 0) {
+      this.error(operator, "Cannot divide by zero.");
+    }
   }
 
   private error(token: Token, message: string) {
