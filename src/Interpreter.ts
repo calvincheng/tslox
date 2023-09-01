@@ -87,6 +87,21 @@ export default class Interpreter implements Visitor<LoxObject> {
     return null;
   }
 
+  // Public API
+
+  interpret(expression: Expr) {
+    try {
+      const value: LoxObject = this.evaluate(expression);
+      console.log(this.stringify(value));
+    } catch {}
+  }
+
+  private stringify(object: LoxObject): string {
+    // TODO: Match Lox expression stringify behaviour
+    if (object === null) return "nil";
+    return object.toString();
+  }
+
   // Private methods -- evaluation
 
   private isTruthy(object: LoxObject): boolean {
