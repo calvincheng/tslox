@@ -14,6 +14,10 @@ type LoxObject = Object | null;
 export default class Interpreter implements Visitor<LoxObject> {
   private onError: (err: RuntimeError) => void;
 
+  constructor(onError: (err: RuntimeError) => void) {
+    this.onError = onError;
+  }
+
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
   }
