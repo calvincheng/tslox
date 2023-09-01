@@ -1,6 +1,7 @@
 import fs from "fs";
 import readline from "node:readline";
 import Scanner from "./Scanner";
+import Interpreter from "./Interpreter";
 import { Parser } from "./Parser";
 import { AstPrinter, AstRpnPrinter } from "./AstPrinter";
 import ErrorHandler from "./ErrorHandler";
@@ -8,6 +9,7 @@ import { readLine } from "./utils";
 
 class Lox {
   errorHandler = new ErrorHandler();
+  private interpreter = new Interpreter((err) => this.errorHandler.report(err));
 
   constructor(source?: string) {
     if (source) {
@@ -23,6 +25,7 @@ class Lox {
 
     // Indicate an error in the exit code
     if (this.errorHandler.hadError) process.exit(65);
+    if (this.errorHandler.hadRuntimeError) process.exit(70);
   }
 
   /**
@@ -57,7 +60,7 @@ class Lox {
     if (this.errorHandler.hadError) return;
 
     if (expression) {
-      console.log(new AstPrinter().print(expression));
+      this.interpreter.interpret(expression);
     }
   }
 }

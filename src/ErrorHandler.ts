@@ -51,12 +51,18 @@ export class RuntimeError extends Error {
 
 export default class ErrorHandler {
   hadError = false;
+  hadRuntimeError = false;
 
   report(err: any): void {
     if (err instanceof ParseError) this.reportParseError(err);
     else if (err instanceof LoxError) this.reportLoxError(err);
     else if (err instanceof RuntimeError) this.reportRuntimeError(err);
-    this.hadError = true;
+
+    if (err instanceof ParseError || err instanceof LoxError) {
+      this.hadError = true;
+    } else if (err instanceof RuntimeError) {
+      this.hadRuntimeError = true;
+    }
   }
 
   private reportLoxError(err: LoxError): void {
