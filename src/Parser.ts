@@ -3,7 +3,7 @@
  * ~~~~~~
  *
  * A parser really has two jobs:
- * 
+ *
  * 1. Given a valid sequence of tokens, produce a corresponding syntax tree.
  * 2. Given an invalid sequence of tokens, detect any errors and tell the user
  *    about their mistakes.
@@ -65,14 +65,20 @@ export class Parser {
    */
   private comparison(): Expr {
     let expr: Expr = this.term();
-    while (this.match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
+    while (
+      this.match(
+        TokenType.GREATER,
+        TokenType.GREATER_EQUAL,
+        TokenType.LESS,
+        TokenType.LESS_EQUAL
+      )
+    ) {
       let operator: Token = this.previous();
       const right = this.term();
       expr = new Binary(expr, operator, right);
     }
     return expr;
   }
-
 
   /**
    * Implements the following grammar production:
@@ -87,7 +93,6 @@ export class Parser {
     }
     return expr;
   }
-
 
   /**
    * Implements the following grammar production:
@@ -117,10 +122,9 @@ export class Parser {
     return this.primary();
   }
 
-
   /**
    * Implements the following grammar production:
-   * primary → NUMBER | STRING | "true" | "false" | "nil" 
+   * primary → NUMBER | STRING | "true" | "false" | "nil"
    *           | "(" expression ")" ;
    */
   private primary(): Expr {
@@ -137,7 +141,6 @@ export class Parser {
     }
     throw this.error(this.peek(), "Expect expression.");
   }
-
 
   /**
    * Check to see if the current token has any of the given types.
