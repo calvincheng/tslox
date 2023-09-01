@@ -59,6 +59,7 @@ export default class Interpreter implements Visitor<LoxObject> {
           expr.operator,
           "Operands must be two numbers or two strings."
         );
+        break;
       case TokenType.STAR:
         this.checkNumberOperands(expr.operator, left, right);
         return Number(left) * Number(right);
