@@ -214,9 +214,16 @@ export class Parser {
     return parseError;
   }
 
+  /**
+   * Advance until we reach a state where the sequence of forthcoming tokens are
+   * aligned such that the next token does match the rule being parsed before
+   * the error occured.
+   */
   private synchronise(): void {
     this.advance();
 
+    // Discard tokens until the beginning of the next statement.
+    // i.e. right after a semicolon.
     while (!this.isAtEnd()) {
       if (this.previous().type === TokenType.SEMICOLON) return;
 
