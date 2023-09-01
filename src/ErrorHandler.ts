@@ -55,6 +55,7 @@ export default class ErrorHandler {
   report(err: any): void {
     if (err instanceof ParseError) this.reportParseError(err);
     else if (err instanceof LoxError) this.reportLoxError(err);
+    else if (err instanceof RuntimeError) this.reportRuntimeError(err);
     this.hadError = true;
   }
 
@@ -70,5 +71,10 @@ export default class ErrorHandler {
         `[line ${err.line}] Error at '${err.token.lexeme}': ${err.message}`
       );
     }
+  }
+
+  private reportRuntimeError(err: RuntimeError): void {
+    console.log(err.message);
+    console.log(`[line ${err.token.line}]`);
   }
 }
