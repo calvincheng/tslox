@@ -12,6 +12,8 @@ import { RuntimeError } from "./ErrorHandler";
 type LoxObject = Object | null;
 
 export class Interpreter implements Visitor<LoxObject> {
+  private onError: (err: RuntimeError) => void;
+
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
   }
@@ -49,7 +51,7 @@ export class Interpreter implements Visitor<LoxObject> {
         if (left instanceof String && right instanceof String) {
           return String(left) + String(right);
         }
-        throw new RuntimeError(
+        this.error(
           expr.operator,
           "Operands must be two numbers or two strings."
         );
@@ -103,7 +105,7 @@ export class Interpreter implements Visitor<LoxObject> {
 
   private checkNumberOperand(operator: Token, operand: LoxObject) {
     if (operand instanceof Number) return;
-    throw new RuntimeError(operator, "Operand must be a number.");
+    this.error(operator, "Operand must be a number.");
   }
 
   private checkNumberOperands(
@@ -112,6 +114,12 @@ export class Interpreter implements Visitor<LoxObject> {
     right: LoxObject
   ) {
     if (left instanceof Number && right instanceof Number) return;
-    throw new RuntimeError(operator, "Operands must be numbers.");
+    this.error(operator, "Operands must be numbers.");
+  }
+
+  private error(token: Token, message: string): RuntimeError {
+    const runtimeError = new RuntimeError(token, message);
+    this.onError(runtimeError);
+    return runtimeError;
   }
 }
