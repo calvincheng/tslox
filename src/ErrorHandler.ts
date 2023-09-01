@@ -36,6 +36,19 @@ export class ParseError extends Error {
   }
 }
 
+export class RuntimeError extends Error {
+  message: string;
+  line?: number;
+  token: Token;
+
+  constructor(token: Token, message: string, line?: number) {
+    super();
+    this.token = token;
+    this.message = message;
+    this.line = line;
+  }
+}
+
 export default class ErrorHandler {
   hadError = false;
 
