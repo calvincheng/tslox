@@ -2,7 +2,7 @@ import { Expr, Visitor, Binary, Grouping, Literal, Unary } from "./Ast";
 import Token from "./Token";
 import { TokenType } from "./TokenType";
 
-class AstPrinter implements Visitor<string> {
+export class AstPrinter implements Visitor<string> {
   print(expr: Expr): string {
     return expr.accept(this);
   }
@@ -37,7 +37,7 @@ class AstPrinter implements Visitor<string> {
  * For example,
  * (1 + 2) * (4 - 3) becomes 1 2 + 4 3 - *
  */
-class AstRpnPrinter implements Visitor<string> {
+export class AstRpnPrinter implements Visitor<string> {
   print(expr: Expr): string {
     return expr.accept(this);
   }
