@@ -137,9 +137,9 @@ export default class Interpreter implements Visitor<LoxObject> {
     this.error(operator, "Operands must be numbers.");
   }
 
-  private error(token: Token, message: string): RuntimeError {
+  private error(token: Token, message: string) {
     const runtimeError = new RuntimeError(token, message);
     this.onError(runtimeError);
-    return runtimeError;
+    throw runtimeError;
   }
 }
