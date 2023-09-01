@@ -63,22 +63,27 @@ class AstRpnPrinter implements Visitor<string> {
   }
 }
 
-function main(): void {
-  const printer = new AstRpnPrinter();
-  const expression = new Binary(
-    new Binary(
-      new Literal(1),
-      new Token(TokenType.PLUS, "+", null, 1),
-      new Literal(2)
-    ),
-    new Token(TokenType.STAR, "*", null, 1),
-    new Binary(
-      new Literal(4),
-      new Token(TokenType.MINUS, "-", null, 1),
-      new Literal(3)
-    )
-  );
-  console.log(printer.print(expression));
-}
+/*
+ * Uncomment below to test AstPrinter/AstRpnPrinter.
+ * You can test it by running this file directly (e.g. using ts-node)
+ */
 
-main();
+// function main(): void {
+//   const printer = new AstRpnPrinter();
+//   const expression = new Binary(
+//     new Binary(
+//       new Literal(1),
+//       new Token(TokenType.PLUS, "+", null, 1),
+//       new Literal(2)
+//     ),
+//     new Token(TokenType.STAR, "*", null, 1),
+//     new Binary(
+//       new Literal(4),
+//       new Token(TokenType.MINUS, "-", null, 1),
+//       new Literal(3)
+//     )
+//   );
+//   console.log(printer.print(expression));
+// }
+//
+// main();
