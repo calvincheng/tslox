@@ -13,13 +13,28 @@
 import Token from "./Token";
 import { TokenType } from "./TokenType";
 import { Expr, Binary, Grouping, Literal, Unary } from "./Ast";
+import { ParseError } from "./ErrorHandler";
 
 export class Parser {
   private tokens: Token[];
   private current = 0;
+  private onError: (err: ParseError) => void;
 
-  constructor(tokens: Token[]) {
+  constructor(tokens: Token[], onError: (err: ParseError) => void) {
     this.tokens = tokens;
+    this.onError = onError;
+  }
+
+  /**
+   * Parse the provided tokens and return a valid expression (i.e. syntax tree).
+   * Returns null in case of an error.
+   */
+  parse(): Expr | null {
+    try {
+      return this.expression();
+    } catch (error) {
+      return null;
+    }
   }
 
   /**
@@ -120,6 +135,7 @@ export class Parser {
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new Grouping(expr);
     }
+    throw this.error(this.peek(), "Expect expression.");
   }
 
 
@@ -136,6 +152,15 @@ export class Parser {
       }
     }
     return false;
+  }
+
+  /**
+   * Checks to see if the next token is of the expected type.
+   * If so, consume it. Otherwise, report an error
+   */
+  private consume(type: TokenType, message: string): Token {
+    if (this.check(type)) return this.advance();
+    throw this.error(this.peek(), message);
   }
 
   /**
@@ -173,5 +198,16 @@ export class Parser {
    */
   private previous(): Token {
     return this.tokens[this.current - 1];
+  }
+
+  /**
+   * This reports an error at a given token, showing the token’s location and
+   * the token itself. The error is returned instead of thrown to let the
+   * calling method inside the parser decide whether to unwind or not.
+   */
+  private error(token: Token, message: string): ParseError {
+    const parseError = new ParseError(token, message, 1);
+    this.onError(parseError);
+    return parseError;
   }
 }
