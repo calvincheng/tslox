@@ -5,23 +5,57 @@
  * from Crafting Interpreters, Section 4.1.1 (Error handling)
  */
 
-export class LoxError {
+import Token from "./Token";
+import { TokenType } from "./TokenType";
+
+export class Error {}
+
+export class LoxError extends Error {
   message: string;
   line?: number;
   where?: string;
 
   constructor(message: string, line?: number, where?: string) {
+    super();
     this.message = message;
     this.line = line;
     this.where = where || "";
   }
 }
 
+export class ParseError extends Error {
+  message: string;
+  line?: number;
+  token: Token;
+
+  constructor(token: Token, message: string, line?: number) {
+    super();
+    this.token = token;
+    this.message = message;
+    this.line = line;
+  }
+}
+
 export default class ErrorHandler {
   hadError = false;
 
-  report(err: LoxError): void {
-    console.log(`[line ${err.line}] Error${err.where}: ${err.message}`);
+  report(err: any): void {
+    if (err instanceof ParseError) this.reportParseError(err);
+    else if (err instanceof LoxError) this.reportLoxError(err);
     this.hadError = true;
+  }
+
+  private reportLoxError(err: LoxError): void {
+    console.log(`[line ${err.line}] Error${err.where}: ${err.message}`);
+  }
+
+  private reportParseError(err: ParseError): void {
+    if (err.token.type === TokenType.EOF) {
+      console.log(`[line ${err.line}] Error at end: ${err.message}`);
+    } else {
+      console.log(
+        `[line ${err.line}] Error at '${err.token.lexeme}': ${err.message}`
+      );
+    }
   }
 }
