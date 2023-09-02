@@ -15,7 +15,7 @@
  * ---------------------------------------------------------------
  */
 
-import fs from "fs/promises";
+import fs from "fs";
 
 type Field = {
   type: string;
@@ -25,99 +25,98 @@ type Field = {
 function run(outputDir: string) {
   const baseName = "Expr";
   const path = `${outputDir}/Ast.ts`;
+  const lines: string[] = [];
 
   /**
    * Helper function that appends lines to the file
    */
-  async function writeLine(text = "") {
-    try {
-      await fs.appendFile(path, text + "\n");
-    } catch (err) {
-      console.error(err);
-    }
+  function writeLine(line = "") {
+    lines.push(line);
   }
 
-  async function defineAst(
-    baseName: string,
-    types: { [type: string]: Field[] }
-  ): Promise<void> {
-    await writeLine(`import Token from "../src/Token";`);
-    await writeLine();
+  function defineAst(baseName: string, types: { [type: string]: Field[] }) {
+    [
+      `/**`,
+      ` * AST`,
+      ` * ~~~`,
+      ` *`,
+      ` * DO NOT EDIT DIRECTLY`,
+      ` * This file was generated using tool/generateAst.ts.`,
+      ` *`,
+      ` */`,
+    ].forEach((line) => writeLine(line));
+    writeLine();
 
-    await defineBase(baseName);
-    await writeLine();
+    writeLine(`import Token from "../src/Token";`);
+    writeLine();
 
-    await defineVisitor(baseName, types);
-    await writeLine();
+    defineBase(baseName);
+    writeLine();
+
+    defineVisitor(baseName, types);
+    writeLine();
 
     for (let [className, fields] of Object.entries(types)) {
-      await defineType(baseName, className, fields);
-      await writeLine();
+      defineType(baseName, className, fields);
+      writeLine();
     }
   }
 
   /**
    * Helper function that writes the base interface to file
    */
-  async function defineBase(baseName: string) {
-    await writeLine(`export interface ${baseName} {`);
-    await writeLine(`  accept: <R>(visitor: Visitor<R>) => R;`);
-    await writeLine(`}`);
+  function defineBase(baseName: string) {
+    writeLine(`export interface ${baseName} {`);
+    writeLine(`  accept: <R>(visitor: Visitor<R>) => R;`);
+    writeLine(`}`);
   }
 
   /**
    * Helper function that writes the visitor interface to file
    */
-  async function defineVisitor(
-    baseName: string,
-    types: { [type: string]: Field[] }
-  ): Promise<void> {
-    await writeLine(`export interface Visitor<R> {`);
+  function defineVisitor(baseName: string, types: { [type: string]: Field[] }) {
+    writeLine(`export interface Visitor<R> {`);
     for (let [className] of Object.entries(types)) {
-      await writeLine(
+      writeLine(
         `  visit${className}${baseName}: (${baseName.toLowerCase()}: ${className}) => R;`
       );
     }
-    await writeLine(`}`);
+    writeLine(`}`);
   }
 
   /**
    * Helper function that writes a type interface to file
    */
-  async function defineType(
-    baseName: string,
-    className: string,
-    fields: Field[]
-  ): Promise<void> {
+  function defineType(baseName: string, className: string, fields: Field[]) {
     // Begin class definition
-    await writeLine(`export class ${className} implements ${baseName} {`);
+    writeLine(`export class ${className} implements ${baseName} {`);
 
     // Fields
     for (let { type, name } of fields) {
-      await writeLine(`  ${name}: ${type};`);
+      writeLine(`  ${name}: ${type};`);
     }
-    await writeLine();
+    writeLine();
 
     // Constructor
     const constructorArgs = fields
       .map(({ type, name }) => `${name}: ${type}`)
       .join(", ");
 
-    await writeLine(`  constructor(${constructorArgs}) {`);
+    writeLine(`  constructor(${constructorArgs}) {`);
     // Store paramters in fields
     for (let field of fields) {
       const { name } = field;
-      await writeLine(`    this.${name} = ${name};`);
+      writeLine(`    this.${name} = ${name};`);
     }
-    await writeLine("  }");
+    writeLine("  }");
 
-    await writeLine();
-    await writeLine(`  accept<R>(visitor: Visitor<R>): R {`);
-    await writeLine(`    return visitor.visit${className}${baseName}(this);`);
-    await writeLine(`  }`);
+    writeLine();
+    writeLine(`  accept<R>(visitor: Visitor<R>): R {`);
+    writeLine(`    return visitor.visit${className}${baseName}(this);`);
+    writeLine(`  }`);
 
     // End class definition
-    await writeLine("}");
+    writeLine("}");
   }
 
   defineAst(baseName, {
@@ -127,12 +126,14 @@ function run(outputDir: string) {
       { name: "right", type: "Expr" },
     ],
     Grouping: [{ name: "expression", type: "Expr" }],
-    Literal: [{ name: "value", type: "Object" }],
+    Literal: [{ name: "value", type: "any" }],
     Unary: [
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
     ],
   });
+
+  fs.writeFileSync(path, lines.join("\n"), { encoding: "utf8", flag: "w" });
 }
 
 run("src");

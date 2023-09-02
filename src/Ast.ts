@@ -1,3 +1,12 @@
+/**
+ * AST
+ * ~~~
+ *
+ * DO NOT EDIT DIRECTLY
+ * This file was generated using tool/generateAst.ts.
+ *
+ */
+
 import Token from "../src/Token";
 
 export interface Expr {
