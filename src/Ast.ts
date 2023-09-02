@@ -85,11 +85,11 @@ export interface Stmt {
 }
 
 export interface StmtVisitor<R> {
-  visitStatementStmt: (stmt: Statement) => R;
+  visitExpressionStmt: (stmt: Expression) => R;
   visitPrintStmt: (stmt: Print) => R;
 }
 
-export class Statement implements Stmt {
+export class Expression implements Stmt {
   expression: Expr;
 
   constructor(expression: Expr) {
@@ -97,7 +97,7 @@ export class Statement implements Stmt {
   }
 
   accept<R>(visitor: StmtVisitor<R>): R {
-    return visitor.visitStatementStmt(this);
+    return visitor.visitExpressionStmt(this);
   }
 }
 

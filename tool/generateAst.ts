@@ -158,7 +158,7 @@ function main() {
     ],
   });
   defineAst("Stmt", {
-    Statement: [{ name: "expression", type: "Expr" }],
+    Expression: [{ name: "expression", type: "Expr" }],
     Print: [{ name: "expression", type: "Expr" }],
   });
 
