@@ -4,14 +4,21 @@
  *
  */
 
-import { Expr, Literal, Grouping, Unary, Binary, Visitor } from "../src/Ast";
+import {
+  Expr,
+  Literal,
+  Grouping,
+  Unary,
+  Binary,
+  ExprVisitor,
+} from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
 
 type LoxObject = Object | null;
 
-export default class Interpreter implements Visitor<LoxObject> {
+export default class Interpreter implements ExprVisitor<LoxObject> {
   private onError: (err: RuntimeError) => void;
 
   constructor(onError: (err: RuntimeError) => void) {

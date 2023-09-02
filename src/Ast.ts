@@ -2,6 +2,8 @@
  * AST
  * ~~~
  *
+ * Abstract syntax trees for Expressions (Expr) and Statements (Stmt).
+ *
  * DO NOT EDIT DIRECTLY
  * This file was generated using tool/generateAst.ts.
  *
@@ -9,11 +11,13 @@
 
 import Token from "../src/Token";
 
+// MARK: Expr
+
 export interface Expr {
-  accept: <R>(visitor: Visitor<R>) => R;
+  accept: <R>(visitor: ExprVisitor<R>) => R;
 }
 
-export interface Visitor<R> {
+export interface ExprVisitor<R> {
   visitBinaryExpr: (expr: Binary) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
@@ -31,7 +35,7 @@ export class Binary implements Expr {
     this.right = right;
   }
 
-  accept<R>(visitor: Visitor<R>): R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitBinaryExpr(this);
   }
 }
@@ -43,7 +47,7 @@ export class Grouping implements Expr {
     this.expression = expression;
   }
 
-  accept<R>(visitor: Visitor<R>): R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitGroupingExpr(this);
   }
 }
@@ -55,7 +59,7 @@ export class Literal implements Expr {
     this.value = value;
   }
 
-  accept<R>(visitor: Visitor<R>): R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitLiteralExpr(this);
   }
 }
@@ -69,7 +73,42 @@ export class Unary implements Expr {
     this.right = right;
   }
 
-  accept<R>(visitor: Visitor<R>): R {
+  accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+// MARK: Stmt
+
+export interface Stmt {
+  accept: <R>(visitor: StmtVisitor<R>) => R;
+}
+
+export interface StmtVisitor<R> {
+  visitStatementStmt: (stmt: Statement) => R;
+  visitPrintStmt: (stmt: Print) => R;
+}
+
+export class Statement implements Stmt {
+  expression: Expr;
+
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitStatementStmt(this);
+  }
+}
+
+export class Print implements Stmt {
+  expression: Expr;
+
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitPrintStmt(this);
   }
 }
