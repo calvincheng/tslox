@@ -12,7 +12,16 @@
 
 import Token from "./Token";
 import { TokenType } from "./TokenType";
-import { Expr, Binary, Grouping, Literal, Unary } from "./Ast";
+import {
+  Expr,
+  Binary,
+  Grouping,
+  Literal,
+  Unary,
+  Stmt,
+  Print,
+  Expression,
+} from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
 export class Parser {
@@ -29,12 +38,12 @@ export class Parser {
    * Parse the provided tokens and return a valid expression (i.e. syntax tree).
    * Returns null in case of an error.
    */
-  parse(): Expr | null {
-    try {
-      return this.expression();
-    } catch (error) {
-      return null;
+  parse(): Stmt[] {
+    const statements: Stmt[] = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+    return statements;
   }
 
   /**
@@ -43,6 +52,33 @@ export class Parser {
    */
   private expression(): Expr {
     return this.equality();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * statement → exprStmt | printStmt ;
+   */
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+    return this.expressionStatement();
+  }
+
+  /**
+   * Consumes the print statement.
+   */
+  private printStatement(): Stmt {
+    const value: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value");
+    return new Print(value);
+  }
+
+  /**
+   * Consumes the expression statement.
+   */
+  private expressionStatement(): Stmt {
+    const value: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression");
+    return new Expression(value);
   }
 
   /**
