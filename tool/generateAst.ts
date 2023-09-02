@@ -1,6 +1,7 @@
 /*
- * The following grammar is implemented:
+ * The following grammars are implemented:
  * --------------------------------------------------------------
+ * (Expr)
  * expression     → literal
  *                | unary
  *                | binary
@@ -12,6 +13,15 @@
  * binary         → expression operator expression ;
  * operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
  *                | "+"  | "-"  | "*" | "/" ;
+ * ---------------------------------------------------------------
+ * (Stmt)
+ * program        → statement* EOF ;
+ *
+ * statement      → exprStmt
+ *                | printStmt ;
+ *
+ * exprStmt       → expression ";" ;
+ * printStmt      → "print" expression ";" ;
  * ---------------------------------------------------------------
  */
 
