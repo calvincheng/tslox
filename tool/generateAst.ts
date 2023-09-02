@@ -127,7 +127,7 @@ function run(outputDir: string) {
       { name: "right", type: "Expr" },
     ],
     Grouping: [{ name: "expression", type: "Expr" }],
-    Literal: [{ name: "value", type: "Object" }],
+    Literal: [{ name: "value", type: "any" }],
     Unary: [
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
