@@ -18,14 +18,23 @@ export default class Interpreter implements Visitor<LoxObject> {
     this.onError = onError;
   }
 
+  /**
+   * Convert the Literal tree node into a runtime value.
+   */
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
   }
 
+  /**
+   * Recursively evaluate subexpression in grouping and return it.
+   */
   visitGroupingExpr(expr: Grouping): LoxObject {
     return this.evaluate(expr.expression);
   }
 
+  /**
+   * Evaluate the operand expression and apply the unary operator to the result.
+   */
   visitUnaryExpr(expr: Unary): LoxObject {
     const right: LoxObject = this.evaluate(expr.right);
     switch (expr.operator.type) {
@@ -40,6 +49,11 @@ export default class Interpreter implements Visitor<LoxObject> {
     return null;
   }
 
+  /**
+   * Evaluate the operand expressions and apply the binary operator to the result.
+   * The operands are evaluated in in left-to-right order, so any side-effects
+   * will apply in that order as well.
+   */
   visitBinaryExpr(expr: Binary): LoxObject {
     const left: LoxObject = this.evaluate(expr.left);
     const right: LoxObject = this.evaluate(expr.right);
@@ -90,6 +104,10 @@ export default class Interpreter implements Visitor<LoxObject> {
 
   // Public API
 
+  /**
+   * Takes in a syntax tree for an expression and evaluates it.
+   * If it succeeds, convert it to a string and print it to the console.
+   */
   interpret(expression: Expr) {
     try {
       const value: LoxObject = this.evaluate(expression);
@@ -98,13 +116,18 @@ export default class Interpreter implements Visitor<LoxObject> {
   }
 
   private stringify(object: LoxObject): string {
-    // TODO: Match Lox expression stringify behaviour
+    // TODO: Verify that this matches Lox's stringify behaviour.
+    // This is needed to hide the detail that Lox is implemented in TypeScript.
     if (object === null) return "nil";
     return object.toString();
   }
 
   // Private methods -- evaluation
 
+  /**
+   * Lox follows Ruby’s simple rule: false and nil are falsey, and everything
+   * else is truthy.
+   */
   private isTruthy(object: LoxObject): boolean {
     if (object == null) return false;
     if (typeof object === "boolean") return Boolean(object);
@@ -112,11 +135,15 @@ export default class Interpreter implements Visitor<LoxObject> {
   }
 
   private isEqual(a: LoxObject, b: LoxObject): boolean {
-    // TODO: Match Lox equality behaviour
-    // Currently follows TypeScript's strict equality (===)
+    // TODO: Verify that this matches Lox's equality behaviour.
+    // This is needed to hide the detail that Lox is implemented in TypeScript.
     return a === b;
   }
 
+  /**
+   * Helper method that sends the expression back into the interpreter’s visitor
+   * implementation.
+   */
   private evaluate(expr: Expr): LoxObject {
     return expr.accept(this);
   }
@@ -141,6 +168,13 @@ export default class Interpreter implements Visitor<LoxObject> {
     }
   }
 
+  /**
+   * Reports an error at a given token, showing the token’s location and
+   * the token itself. The error is rethrown for Interpreter.evaluate to catch.
+   *
+   * TODO: We can probably refactor this to throw directly from the methods and
+   * call onError in the catch block in Interpreter.evaluate.
+   */
   private error(token: Token, message: string) {
     const runtimeError = new RuntimeError(token, message);
     this.onError(runtimeError);
