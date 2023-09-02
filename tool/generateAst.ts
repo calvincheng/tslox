@@ -41,6 +41,15 @@ function run(outputDir: string) {
     baseName: string,
     types: { [type: string]: Field[] }
   ): Promise<void> {
+    await writeLine(`/**`);
+    await writeLine(` * AST`);
+    await writeLine(` * ~~~`);
+    await writeLine(` * `);
+    await writeLine(` * DO NOT EDIT DIRECTLY`);
+    await writeLine(` * This file was generated using tool/generateAst.ts.`);
+    await writeLine(` */`);
+    await writeLine();
+
     await writeLine(`import Token from "../src/Token";`);
     await writeLine();
 
