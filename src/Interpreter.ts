@@ -11,6 +11,10 @@ import {
   Unary,
   Binary,
   ExprVisitor,
+  Stmt,
+  Print,
+  Expression,
+  StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
@@ -18,7 +22,9 @@ import { RuntimeError } from "./ErrorHandler";
 
 type LoxObject = Object | null;
 
-export default class Interpreter implements ExprVisitor<LoxObject> {
+export default class Interpreter
+  implements ExprVisitor<LoxObject>, StmtVisitor<void>
+{
   private onError: (err: RuntimeError) => void;
 
   constructor(onError: (err: RuntimeError) => void) {
@@ -109,17 +115,25 @@ export default class Interpreter implements ExprVisitor<LoxObject> {
     return null;
   }
 
+  visitExpressionStmt(stmt: Expression) {
+    this.evaluate(stmt.expression);
+  }
+
+  visitPrintStmt(stmt: Print) {
+    let value = this.evaluate(stmt.expression);
+    console.log(this.stringify(value));
+  }
+
   // Public API
 
   /**
    * Takes in a syntax tree for an expression and evaluates it.
    * If it succeeds, convert it to a string and print it to the console.
    */
-  interpret(expression: Expr) {
-    try {
-      const value: LoxObject = this.evaluate(expression);
-      console.log(this.stringify(value));
-    } catch {}
+  interpret(statements: Stmt[]) {
+    for (let statement of statements) {
+      this.execute(statement);
+    }
   }
 
   private stringify(object: LoxObject): string {
@@ -153,6 +167,14 @@ export default class Interpreter implements ExprVisitor<LoxObject> {
    */
   private evaluate(expr: Expr): LoxObject {
     return expr.accept(this);
+  }
+
+  /**
+   * Helper method that sends the statement back into the interpreter’s visitor
+   * implementation.
+   */
+  private execute(stmt: Stmt) {
+    return stmt.accept(this);
   }
 
   // Private methods -- detecting runtime errors
