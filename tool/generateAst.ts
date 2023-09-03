@@ -173,7 +173,7 @@ function main() {
     Print: [{ name: "expression", type: "Expr" }],
     Var: [
       { name: "name", type: "Token" },
-      { name: "initialiser", type: "Expr" },
+      { name: "initialiser", type: "Expr | null" },
     ],
   });
 

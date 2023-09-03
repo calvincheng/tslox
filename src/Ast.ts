@@ -129,9 +129,9 @@ export class Print implements Stmt {
 
 export class Var implements Stmt {
   name: Token;
-  initialiser: Expr;
+  initialiser: Expr | null;
 
-  constructor(name: Token, initialiser: Expr) {
+  constructor(name: Token, initialiser: Expr | null) {
     this.name = name;
     this.initialiser = initialiser;
   }
