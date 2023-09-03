@@ -24,6 +24,7 @@ import {
   Print,
   Expression,
   Var,
+  Block,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -72,10 +73,11 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * statement → exprStmt | printStmt ;
+   * statement → exprStmt | printStmt | block ;
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
 
@@ -95,6 +97,18 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression");
     return new Expression(value);
+  }
+
+  /**
+   * Consumes a block and returns the list of statements within.
+   */
+  private block(): Stmt[] {
+    const statements: Stmt[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      statements.push(this.declaration());
+    }
+    this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+    return statements;
   }
 
   /**
