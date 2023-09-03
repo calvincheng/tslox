@@ -15,13 +15,23 @@
  *                | "+"  | "-"  | "*" | "/" ;
  * ---------------------------------------------------------------
  * (Stmt)
- * program        → statement* EOF ;
+ * program        → declaration* EOF ;
+ *
+ * declaration    → varDecl
+ *                | statement ;
  *
  * statement      → exprStmt
  *                | printStmt ;
  *
+ * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
+ *
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
+ *
+ * primary        → "true" | "false" | "nil"
+ *                | NUMBER | STRING
+ *                | "(" expression ")"
+ *                | IDENTIFIER ;
  * ---------------------------------------------------------------
  */
 
@@ -156,10 +166,15 @@ function main() {
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
     ],
+    Variable: [{ name: "name", type: "Token" }],
   });
   defineAst("Stmt", {
     Expression: [{ name: "expression", type: "Expr" }],
     Print: [{ name: "expression", type: "Expr" }],
+    Var: [
+      { name: "name", type: "Token" },
+      { name: "initialiser", type: "Expr" },
+    ],
   });
 
   // Write to filepath

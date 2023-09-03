@@ -22,6 +22,7 @@ export interface ExprVisitor<R> {
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitUnaryExpr: (expr: Unary) => R;
+  visitVariableExpr: (expr: Variable) => R;
 }
 
 export class Binary implements Expr {
@@ -78,6 +79,18 @@ export class Unary implements Expr {
   }
 }
 
+export class Variable implements Expr {
+  name: Token;
+
+  constructor(name: Token) {
+    this.name = name;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitVariableExpr(this);
+  }
+}
+
 // MARK: Stmt
 
 export interface Stmt {
@@ -87,6 +100,7 @@ export interface Stmt {
 export interface StmtVisitor<R> {
   visitExpressionStmt: (stmt: Expression) => R;
   visitPrintStmt: (stmt: Print) => R;
+  visitVarStmt: (stmt: Var) => R;
 }
 
 export class Expression implements Stmt {
@@ -110,5 +124,19 @@ export class Print implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+export class Var implements Stmt {
+  name: Token;
+  initialiser: Expr;
+
+  constructor(name: Token, initialiser: Expr) {
+    this.name = name;
+    this.initialiser = initialiser;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitVarStmt(this);
   }
 }
