@@ -19,6 +19,7 @@ import {
   Literal,
   Unary,
   Variable,
+  Assign,
   Stmt,
   Print,
   Expression,
@@ -57,7 +58,7 @@ export class Parser {
    * expression → equality ;
    */
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
   }
 
   /**
@@ -208,6 +209,23 @@ export class Parser {
       return new Grouping(expr);
     }
     throw this.error(this.peek(), "Expect expression.");
+  }
+
+  /**
+   * Refer to section 8.4.1 in Crafting Interpreters
+   */
+  private assignment(): Expr {
+    const expr: Expr = this.equality();
+    if (this.match(TokenType.EQUAL)) {
+      const equals: Token = this.previous();
+      const value: Expr = this.assignment();
+      if (expr instanceof Variable) {
+        const name = (expr as Variable).name;
+        return new Assign(name, value);
+      }
+      this.error(equals, "Invalid assignment target.");
+    }
+    return expr;
   }
 
   /**
