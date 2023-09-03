@@ -10,15 +10,18 @@ import {
   Grouping,
   Unary,
   Binary,
+  Variable,
   ExprVisitor,
   Stmt,
   Print,
   Expression,
+  Var,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
+import Environment from "./Environment";
 
 type LoxObject = Object | null;
 
@@ -26,6 +29,7 @@ export default class Interpreter
   implements ExprVisitor<LoxObject>, StmtVisitor<void>
 {
   private onError: (err: RuntimeError) => void;
+  private environment: Environment = new Environment();
 
   constructor(onError: (err: RuntimeError) => void) {
     this.onError = onError;
@@ -115,6 +119,13 @@ export default class Interpreter
     return null;
   }
 
+  /**
+   * Evaluate a variable expression.
+   */
+  visitVariableExpr(expr: Variable): LoxObject {
+    return this.environment.get(expr.name);
+  }
+
   visitExpressionStmt(stmt: Expression) {
     this.evaluate(stmt.expression);
   }
@@ -122,6 +133,12 @@ export default class Interpreter
   visitPrintStmt(stmt: Print) {
     let value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitVarStmt(stmt: Var) {
+    const value =
+      stmt.initialiser != null ? this.evaluate(stmt.initialiser) : null;
+    this.environment.define(stmt.name.lexeme, value);
   }
 
   // Public API
