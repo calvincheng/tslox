@@ -11,6 +11,7 @@ import {
   Unary,
   Binary,
   Variable,
+  Assign,
   ExprVisitor,
   Stmt,
   Print,
@@ -124,6 +125,12 @@ export default class Interpreter
    */
   visitVariableExpr(expr: Variable): LoxObject {
     return this.environment.get(expr.name);
+  }
+
+  visitAssignExpr(expr: Assign): LoxObject {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   visitExpressionStmt(stmt: Expression) {
