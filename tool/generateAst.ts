@@ -23,7 +23,10 @@
  *                | statement ;
  *
  * statement      → exprStmt
- *                | printStmt ;
+ *                | printStmt
+ *                | block ;
+ *
+ * block          → "{" declaration "}" ;
  *
  * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
  *
@@ -170,6 +173,7 @@ function main() {
     Variable: [{ name: "name", type: "Token" }],
   });
   defineAst("Stmt", {
+    Block: [{ name: "statements", type: "Stmt[]" }],
     Expression: [{ name: "expression", type: "Expr" }],
     Print: [{ name: "expression", type: "Expr" }],
     Var: [

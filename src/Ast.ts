@@ -113,9 +113,22 @@ export interface Stmt {
 }
 
 export interface StmtVisitor<R> {
+  visitBlockStmt: (stmt: Block) => R;
   visitExpressionStmt: (stmt: Expression) => R;
   visitPrintStmt: (stmt: Print) => R;
   visitVarStmt: (stmt: Var) => R;
+}
+
+export class Block implements Stmt {
+  statements: Stmt[];
+
+  constructor(statements: Stmt[]) {
+    this.statements = statements;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBlockStmt(this);
+  }
 }
 
 export class Expression implements Stmt {
