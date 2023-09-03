@@ -2,7 +2,9 @@
  * The following grammars are implemented:
  * --------------------------------------------------------------
  * (Expr)
- * expression     → equality ;
+ * expression     → assignment ;
+ * assignment     → IDENTIFIER "=" assignment
+ *                | equality ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -150,6 +152,10 @@ function main() {
 
   // AST definitions
   defineAst("Expr", {
+    Assign: [
+      { name: "name", type: "Token" },
+      { name: "value", type: "Expr" },
+    ],
     Binary: [
       { name: "left", type: "Expr" },
       { name: "operator", type: "Token" },
