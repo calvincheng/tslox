@@ -18,9 +18,11 @@ import {
   Grouping,
   Literal,
   Unary,
+  Variable,
   Stmt,
   Print,
   Expression,
+  Var,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -36,12 +38,16 @@ export class Parser {
 
   /**
    * Parse the provided tokens and return a valid expression (i.e. syntax tree).
-   * Returns null in case of an error.
    */
   parse(): Stmt[] {
     const statements: Stmt[] = [];
-    while (!this.isAtEnd()) {
-      statements.push(this.statement());
+    try {
+      while (!this.isAtEnd()) {
+        statements.push(this.declaration());
+      }
+    } catch (err) {
+      if (err instanceof ParseError) this.synchronise();
+      throw err;
     }
     return statements;
   }
@@ -52,6 +58,15 @@ export class Parser {
    */
   private expression(): Expr {
     return this.equality();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * declaration → varDecl | statement ;
+   */
+  private declaration(): Stmt {
+    if (this.match(TokenType.VAR)) return this.varDeclaration();
+    return this.statement();
   }
 
   /**
@@ -79,6 +94,19 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression");
     return new Expression(value);
+  }
+
+  /**
+   * Consumes a variable declaration statement.
+   */
+  private varDeclaration(): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      "Expect variable name"
+    );
+    const initialiser = this.match(TokenType.EQUAL) ? this.expression() : null;
+    this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initialiser);
   }
 
   /**
@@ -147,7 +175,7 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * unary → ( "!" | "-" ) unary
-   *                | primary ;
+   *       | primary ;
    */
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
@@ -161,7 +189,8 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * primary → NUMBER | STRING | "true" | "false" | "nil"
-   *           | "(" expression ")" ;
+   *         | "(" expression ")" ;
+   *         | IDENTIFIER
    */
   private primary(): Expr {
     if (this.match(TokenType.FALSE)) return new Literal(false);
@@ -169,6 +198,9 @@ export class Parser {
     if (this.match(TokenType.NIL)) return new Literal(null);
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Variable(this.previous());
     }
     if (this.match(TokenType.LEFT_PAREN)) {
       const expr: Expr = this.expression();
