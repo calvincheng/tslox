@@ -17,6 +17,7 @@ import {
   Print,
   Expression,
   Var,
+  Block,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -148,6 +149,10 @@ export default class Interpreter
     this.environment.define(stmt.name.lexeme, value);
   }
 
+  visitBlockStmt(stmt: Block) {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
   // Public API
 
   /**
@@ -199,6 +204,22 @@ export default class Interpreter
    */
   private execute(stmt: Stmt) {
     return stmt.accept(this);
+  }
+
+  /**
+   * Helper method that executes the statements contained within a block.
+   * Statements are executed within its own lexical scope (a.k.a. environment).
+   */
+  private executeBlock(statements: Stmt[], environment: Environment) {
+    const previous: Environment = this.environment;
+    try {
+      this.environment = environment;
+      for (let statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
   }
 
   // Private methods -- detecting runtime errors
