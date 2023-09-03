@@ -43,7 +43,8 @@ class Lox {
       try {
         this.run(line);
       } catch (err) {
-        this.errorHandler.report(err as Error);
+        // TODO: Revisit error handling here.
+        // this.errorHandler.report(err as Error);
       }
       this.errorHandler.hadError = false;
     }
@@ -54,14 +55,12 @@ class Lox {
     const tokens = scanner.scanTokens();
 
     const parser = new Parser(tokens, (err) => this.errorHandler.report(err));
-    const expression = parser.parse();
+    const statements = parser.parse();
 
     // Stop if there was a syntax error
     if (this.errorHandler.hadError) return;
 
-    if (expression) {
-      this.interpreter.interpret(expression);
-    }
+    this.interpreter.interpret(statements);
   }
 }
 

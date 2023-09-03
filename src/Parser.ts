@@ -12,7 +12,20 @@
 
 import Token from "./Token";
 import { TokenType } from "./TokenType";
-import { Expr, Binary, Grouping, Literal, Unary } from "./Ast";
+import {
+  Expr,
+  Binary,
+  Grouping,
+  Literal,
+  Unary,
+  Variable,
+  Assign,
+  Stmt,
+  Print,
+  Expression,
+  Var,
+  Block,
+} from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
 export class Parser {
@@ -27,14 +40,18 @@ export class Parser {
 
   /**
    * Parse the provided tokens and return a valid expression (i.e. syntax tree).
-   * Returns null in case of an error.
    */
-  parse(): Expr | null {
+  parse(): Stmt[] {
+    const statements: Stmt[] = [];
     try {
-      return this.expression();
-    } catch (error) {
-      return null;
+      while (!this.isAtEnd()) {
+        statements.push(this.declaration());
+      }
+    } catch (err) {
+      if (err instanceof ParseError) this.synchronise();
+      throw err;
     }
+    return statements;
   }
 
   /**
@@ -42,7 +59,69 @@ export class Parser {
    * expression → equality ;
    */
   private expression(): Expr {
-    return this.equality();
+    return this.assignment();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * declaration → varDecl | statement ;
+   */
+  private declaration(): Stmt {
+    if (this.match(TokenType.VAR)) return this.varDeclaration();
+    return this.statement();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * statement → exprStmt | printStmt | block ;
+   */
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
+    return this.expressionStatement();
+  }
+
+  /**
+   * Consumes the print statement.
+   */
+  private printStatement(): Stmt {
+    const value: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value");
+    return new Print(value);
+  }
+
+  /**
+   * Consumes the expression statement.
+   */
+  private expressionStatement(): Stmt {
+    const value: Expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression");
+    return new Expression(value);
+  }
+
+  /**
+   * Consumes a block and returns the list of statements within.
+   */
+  private block(): Stmt[] {
+    const statements: Stmt[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      statements.push(this.declaration());
+    }
+    this.consume(TokenType.RIGHT_BRACE, "Expected '}' after block.");
+    return statements;
+  }
+
+  /**
+   * Consumes a variable declaration statement.
+   */
+  private varDeclaration(): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      "Expect variable name"
+    );
+    const initialiser = this.match(TokenType.EQUAL) ? this.expression() : null;
+    this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+    return new Var(name, initialiser);
   }
 
   /**
@@ -111,7 +190,7 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * unary → ( "!" | "-" ) unary
-   *                | primary ;
+   *       | primary ;
    */
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
@@ -125,7 +204,8 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * primary → NUMBER | STRING | "true" | "false" | "nil"
-   *           | "(" expression ")" ;
+   *         | "(" expression ")" ;
+   *         | IDENTIFIER
    */
   private primary(): Expr {
     if (this.match(TokenType.FALSE)) return new Literal(false);
@@ -134,12 +214,32 @@ export class Parser {
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
     }
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Variable(this.previous());
+    }
     if (this.match(TokenType.LEFT_PAREN)) {
       const expr: Expr = this.expression();
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new Grouping(expr);
     }
     throw this.error(this.peek(), "Expect expression.");
+  }
+
+  /**
+   * Refer to section 8.4.1 in Crafting Interpreters
+   */
+  private assignment(): Expr {
+    const expr: Expr = this.equality();
+    if (this.match(TokenType.EQUAL)) {
+      const equals: Token = this.previous();
+      const value: Expr = this.assignment();
+      if (expr instanceof Variable) {
+        const name = (expr as Variable).name;
+        return new Assign(name, value);
+      }
+      this.error(equals, "Invalid assignment target.");
+    }
+    return expr;
   }
 
   /**
