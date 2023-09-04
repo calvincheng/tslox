@@ -46,6 +46,7 @@ class Lox {
         this.errorHandler.report(err as Error);
       }
       this.errorHandler.hadError = false;
+      this.errorHandler.hadRuntimeError = false;
     }
   }
 
