@@ -88,11 +88,10 @@ export default class Interpreter
         if (typeof left === "string" && typeof right === "string") {
           return String(left) + String(right);
         }
-        this.error(
+        throw new RuntimeError(
           expr.operator,
           "Operands must be two numbers or two strings."
         );
-        break;
       case TokenType.STAR:
         this.checkNumberOperands(expr.operator, left, right);
         return Number(left) * Number(right);
@@ -226,7 +225,7 @@ export default class Interpreter
 
   private checkNumberOperand(operator: Token, operand: LoxObject) {
     if (typeof operand === "number") return;
-    this.error(operator, "Operand must be a number.");
+    throw new RuntimeError(operator, "Operand must be a number.");
   }
 
   private checkNumberOperands(
@@ -235,23 +234,10 @@ export default class Interpreter
     right: LoxObject
   ) {
     if (!(typeof left === "number" && typeof right === "number")) {
-      this.error(operator, "Operands must be numbers.");
+      throw new RuntimeError(operator, "Operands must be numbers.");
     }
     if (Number(right) === 0) {
-      this.error(operator, "Cannot divide by zero.");
+      throw new RuntimeError(operator, "Cannot divide by zero.");
     }
-  }
-
-  /**
-   * Reports an error at a given token, showing the token’s location and
-   * the token itself. The error is rethrown for Interpreter.evaluate to catch.
-   *
-   * TODO: We can probably refactor this to throw directly from the methods and
-   * call onError in the catch block in Interpreter.evaluate.
-   */
-  private error(token: Token, message: string) {
-    const runtimeError = new RuntimeError(token, message);
-    this.onError(runtimeError);
-    throw runtimeError;
   }
 }
