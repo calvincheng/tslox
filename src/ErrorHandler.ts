@@ -80,7 +80,6 @@ export default class ErrorHandler {
   }
 
   private reportRuntimeError(err: RuntimeError): void {
-    console.log(err.message);
-    console.log(`[line ${err.token.line}]`);
+    console.log(`[line ${err.token.line}] ${err.message}`);
   }
 }

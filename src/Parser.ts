@@ -86,7 +86,7 @@ export class Parser {
    */
   private printStatement(): Stmt {
     const value: Expr = this.expression();
-    this.consume(TokenType.SEMICOLON, "Expect ';' after value");
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
   }
 
@@ -95,7 +95,7 @@ export class Parser {
    */
   private expressionStatement(): Stmt {
     const value: Expr = this.expression();
-    this.consume(TokenType.SEMICOLON, "Expect ';' after expression");
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(value);
   }
 
@@ -117,7 +117,7 @@ export class Parser {
   private varDeclaration(): Stmt {
     const name: Token = this.consume(
       TokenType.IDENTIFIER,
-      "Expect variable name"
+      "Expect variable name."
     );
     const initialiser = this.match(TokenType.EQUAL) ? this.expression() : null;
     this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
