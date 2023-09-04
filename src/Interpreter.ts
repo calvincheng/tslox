@@ -159,8 +159,12 @@ export default class Interpreter
    * If it succeeds, convert it to a string and print it to the console.
    */
   interpret(statements: Stmt[]) {
-    for (let statement of statements) {
-      this.execute(statement);
+    try {
+      for (let statement of statements) {
+        this.execute(statement);
+      }
+    } catch (err) {
+      this.onError(err as RuntimeError);
     }
   }
 

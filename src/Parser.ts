@@ -43,13 +43,16 @@ export class Parser {
    */
   parse(): Stmt[] {
     const statements: Stmt[] = [];
-    try {
-      while (!this.isAtEnd()) {
+    while (!this.isAtEnd()) {
+      try {
         statements.push(this.declaration());
+      } catch (err) {
+        if (err instanceof ParseError) {
+          this.synchronise();
+          continue;
+        }
+        throw err;
       }
-    } catch (err) {
-      if (err instanceof ParseError) this.synchronise();
-      throw err;
     }
     return statements;
   }
