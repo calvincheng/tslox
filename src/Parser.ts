@@ -25,6 +25,7 @@ import {
   Expression,
   Var,
   Block,
+  If,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -80,8 +81,23 @@ export class Parser {
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
+  }
+
+  /**
+   * Consumes the if statement.
+   */
+  private ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+    const condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+    const thenBranch: Stmt = this.statement();
+    const elseBranch = this.match(TokenType.ELSE) ? this.statement() : null;
+
+    return new If(condition, thenBranch, elseBranch);
   }
 
   /**
