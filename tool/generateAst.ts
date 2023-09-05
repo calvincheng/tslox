@@ -22,16 +22,15 @@
  * declaration    → varDecl
  *                | statement ;
  *
+ * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
+ *
  * statement      → exprStmt
  *                | printStmt
  *                | block ;
  *
- * block          → "{" declaration "}" ;
- *
- * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
- *
  * exprStmt       → expression ";" ;
  * printStmt      → "print" expression ";" ;
+ * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
  */
 
