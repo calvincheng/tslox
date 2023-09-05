@@ -147,9 +147,9 @@ export class Expression implements Stmt {
 export class If implements Stmt {
   condition: Expr;
   thenBranch: Stmt;
-  elseBranch: Stmt;
+  elseBranch: Stmt | null;
 
-  constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) {
+  constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null) {
     this.condition = condition;
     this.thenBranch = thenBranch;
     this.elseBranch = elseBranch;

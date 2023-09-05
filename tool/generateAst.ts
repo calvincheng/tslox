@@ -180,7 +180,7 @@ function main() {
     If: [
       { name: "condition", type: "Expr" },
       { name: "thenBranch", type: "Stmt" },
-      { name: "elseBranch", type: "Stmt" },
+      { name: "elseBranch", type: "Stmt | null" },
     ],
     Print: [{ name: "expression", type: "Expr" }],
     Var: [
