@@ -25,10 +25,13 @@
  * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
  *
  * statement      → exprStmt
+ *                | ifStmt
  *                | printStmt
  *                | block ;
  *
  * exprStmt       → expression ";" ;
+ * ifStmt         → "if" "(" expression ")" statement
+ *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
@@ -174,6 +177,11 @@ function main() {
   defineAst("Stmt", {
     Block: [{ name: "statements", type: "Stmt[]" }],
     Expression: [{ name: "expression", type: "Expr" }],
+    If: [
+      { name: "condition", type: "Expr" },
+      { name: "thenBranch", type: "Stmt" },
+      { name: "elseBranch", type: "Stmt" },
+    ],
     Print: [{ name: "expression", type: "Expr" }],
     Var: [
       { name: "name", type: "Token" },
