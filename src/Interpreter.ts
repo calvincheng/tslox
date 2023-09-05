@@ -18,6 +18,7 @@ import {
   Expression,
   Var,
   Block,
+  If,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -135,6 +136,16 @@ export default class Interpreter
 
   visitExpressionStmt(stmt: Expression) {
     this.evaluate(stmt.expression);
+  }
+
+  visitIfStmt(stmt: If) {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else {
+      if (stmt.elseBranch) {
+        this.execute(stmt.elseBranch);
+      }
+    }
   }
 
   visitPrintStmt(stmt: Print) {
