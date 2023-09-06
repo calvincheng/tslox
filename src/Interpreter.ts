@@ -7,6 +7,7 @@
 import {
   Expr,
   Literal,
+  Logical,
   Grouping,
   Unary,
   Binary,
@@ -43,6 +44,20 @@ export default class Interpreter
    */
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
+  }
+
+  /**
+   * Evaluate a logical expression, short-circuiting if needed.
+   */
+  visitLogicalExpr(expr: Logical): LoxObject {
+    const left: LoxObject = this.evaluate(expr.left);
+    // Short-circuit by returning left expression as soon as condition fails
+    if (expr.operator.type === TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+    return this.evaluate(expr.right);
   }
 
   /**
