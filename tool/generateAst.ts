@@ -4,7 +4,9 @@
  * (Expr)
  * expression     → assignment ;
  * assignment     → IDENTIFIER "=" assignment
- *                | equality ;
+ *                | logic_or ;
+ * logic_or       → logic_and ( "or" logic_and )* ;
+ * logic_and      → equality ( "and" equality )* ;
  * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -168,6 +170,11 @@ function main() {
     ],
     Grouping: [{ name: "expression", type: "Expr" }],
     Literal: [{ name: "value", type: "any" }],
+    Logical: [
+      { name: "left", type: "Expr" },
+      { name: "operator", type: "Token" },
+      { name: "right", type: "Expr" },
+    ],
     Unary: [
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
