@@ -17,6 +17,7 @@ import {
   Binary,
   Grouping,
   Literal,
+  Logical,
   Unary,
   Variable,
   Assign,
@@ -248,7 +249,7 @@ export class Parser {
    * Refer to section 8.4.1 in Crafting Interpreters
    */
   private assignment(): Expr {
-    const expr: Expr = this.equality();
+    const expr: Expr = this.or();
     if (this.match(TokenType.EQUAL)) {
       const equals: Token = this.previous();
       const value: Expr = this.assignment();
@@ -257,6 +258,32 @@ export class Parser {
         return new Assign(name, value);
       }
       this.error(equals, "Invalid assignment target.");
+    }
+    return expr;
+  }
+
+  /**
+   * Consumes a series of `or` expressions.
+   */
+  private or(): Expr {
+    let expr: Expr = this.and();
+    while (this.match(TokenType.OR)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+    return expr;
+  }
+
+  /**
+   * Consumes a series of `and` expressions.
+   */
+  private and(): Expr {
+    let expr: Expr = this.equality();
+    while (this.match(TokenType.AND)) {
+      const operator: Token = this.previous();
+      const right: Expr = this.equality();
+      expr = new Logical(expr, operator, right);
     }
     return expr;
   }
