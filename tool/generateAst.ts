@@ -29,12 +29,14 @@
  * statement      → exprStmt
  *                | ifStmt
  *                | printStmt
+ *                | whileStmt
  *                | block ;
  *
  * exprStmt       → expression ";" ;
  * ifStmt         → "if" "(" expression ")" statement
  *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
+ * whileStmt      → "while" "(" expression ")" statement ;
  * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
  */
@@ -193,6 +195,10 @@ function main() {
     Var: [
       { name: "name", type: "Token" },
       { name: "initialiser", type: "Expr | null" },
+    ],
+    While: [
+      { name: "condition", type: "Expr" },
+      { name: "body", type: "Stmt" },
     ],
   });
 
