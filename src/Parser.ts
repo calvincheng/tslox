@@ -27,6 +27,7 @@ import {
   Var,
   Block,
   If,
+  While,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -78,11 +79,12 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * statement → exprStmt | printStmt | block ;
+   * statement → exprStmt | ifStmt | printStmt | whileStmt | block ;
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
@@ -108,6 +110,18 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  /**
+   * Consumes the while statement.
+   */
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after while.");
+    const condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+    const body: Stmt = this.statement();
+    return new While(condition, body);
   }
 
   /**
