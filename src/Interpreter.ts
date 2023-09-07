@@ -20,6 +20,7 @@ import {
   Var,
   Block,
   If,
+  While,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -172,6 +173,12 @@ export default class Interpreter
     const value =
       stmt.initialiser != null ? this.evaluate(stmt.initialiser) : null;
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitWhileStmt(stmt: While) {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   visitBlockStmt(stmt: Block) {
