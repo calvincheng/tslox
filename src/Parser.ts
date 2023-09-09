@@ -83,6 +83,7 @@ export class Parser {
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
@@ -110,6 +111,53 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  /**
+   * Consumes the for statement.
+   * Desugars into a while statement:
+   * ```
+   * <INITIALISER>
+   * while (<CONDITION)>) {
+   *    <BODY>
+   *    <INCREMENT>
+   * }
+   * ```
+   */
+  private forStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after for.");
+
+    let initialiser: Stmt | null;
+    if (this.match(TokenType.SEMICOLON)) {
+      initialiser = null;
+    } else if (this.match(TokenType.VAR)) {
+      initialiser = this.varDeclaration();
+    } else {
+      initialiser = this.expressionStatement();
+    }
+
+    let condition = !this.check(TokenType.SEMICOLON) ? this.expression() : null;
+    this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+    const increment = !this.check(TokenType.RIGHT_PAREN)
+      ? this.expression()
+      : null;
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    let body: Stmt = this.statement();
+
+    if (increment != null) {
+      body = new Block([body, new Expression(increment)]);
+    }
+
+    if (condition == null) condition = new Literal(true);
+    body = new While(condition, body);
+
+    if (initialiser != null) {
+      body = new Block([initialiser, body]);
+    }
+
+    return body;
   }
 
   /**
