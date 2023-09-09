@@ -27,12 +27,16 @@
  * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
  *
  * statement      → exprStmt
+ *                | for Stmt
  *                | ifStmt
  *                | printStmt
  *                | whileStmt
  *                | block ;
  *
  * exprStmt       → expression ";" ;
+ * forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+ *                  expression? ";"
+ *                  expression? ")" statement ;
  * ifStmt         → "if" "(" expression ")" statement
  *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
