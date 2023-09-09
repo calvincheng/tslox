@@ -6,6 +6,10 @@
   "author": "Calvin Cheng",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "ast": "yarn run ts-node tool/generateAst.ts",
+    "lox": "yarn run ts-node src/lox.ts"
+  },
   "devDependencies": {
     "@types/node": "^18.0.3",
     "ts-node": "^10.8.2",
