@@ -43,10 +43,10 @@ class Lox {
       try {
         this.run(line);
       } catch (err) {
-        // TODO: Revisit error handling here.
-        // this.errorHandler.report(err as Error);
+        this.errorHandler.report(err as Error);
       }
       this.errorHandler.hadError = false;
+      this.errorHandler.hadRuntimeError = false;
     }
   }
 
