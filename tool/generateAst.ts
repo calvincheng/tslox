@@ -11,8 +11,9 @@
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
- * unary          → ( "!" | "-" ) unary
- *                | primary ;
+ * unary          → ( "!" | "-" ) unary | call ;
+ * call           → primary ( "(" arguments? ")" )* ;
+ * arguments      → expression ( "," expression )* ;
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
@@ -173,6 +174,11 @@ function main() {
       { name: "left", type: "Expr" },
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
+    ],
+    Call: [
+      { name: "callee", type: "Expr" },
+      { name: "paren", type: "Token" },
+      { name: "args", type: "Expr[]" },
     ],
     Grouping: [{ name: "expression", type: "Expr" }],
     Literal: [{ name: "value", type: "any" }],
