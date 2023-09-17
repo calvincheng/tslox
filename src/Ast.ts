@@ -22,6 +22,7 @@ export interface ExprVisitor<R> {
   visitBinaryExpr: (expr: Binary) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
+  visitLogicalExpr: (expr: Logical) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitVariableExpr: (expr: Variable) => R;
 }
@@ -80,6 +81,22 @@ export class Literal implements Expr {
   }
 }
 
+export class Logical implements Expr {
+  left: Expr;
+  operator: Token;
+  right: Expr;
+
+  constructor(left: Expr, operator: Token, right: Expr) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitLogicalExpr(this);
+  }
+}
+
 export class Unary implements Expr {
   operator: Token;
   right: Expr;
@@ -115,8 +132,10 @@ export interface Stmt {
 export interface StmtVisitor<R> {
   visitBlockStmt: (stmt: Block) => R;
   visitExpressionStmt: (stmt: Expression) => R;
+  visitIfStmt: (stmt: If) => R;
   visitPrintStmt: (stmt: Print) => R;
   visitVarStmt: (stmt: Var) => R;
+  visitWhileStmt: (stmt: While) => R;
 }
 
 export class Block implements Stmt {
@@ -143,6 +162,22 @@ export class Expression implements Stmt {
   }
 }
 
+export class If implements Stmt {
+  condition: Expr;
+  thenBranch: Stmt;
+  elseBranch: Stmt | null;
+
+  constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt | null) {
+    this.condition = condition;
+    this.thenBranch = thenBranch;
+    this.elseBranch = elseBranch;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitIfStmt(this);
+  }
+}
+
 export class Print implements Stmt {
   expression: Expr;
 
@@ -166,5 +201,19 @@ export class Var implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitVarStmt(this);
+  }
+}
+
+export class While implements Stmt {
+  condition: Expr;
+  body: Stmt;
+
+  constructor(condition: Expr, body: Stmt) {
+    this.condition = condition;
+    this.body = body;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitWhileStmt(this);
   }
 }

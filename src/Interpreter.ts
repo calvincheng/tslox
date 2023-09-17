@@ -7,6 +7,7 @@
 import {
   Expr,
   Literal,
+  Logical,
   Grouping,
   Unary,
   Binary,
@@ -18,6 +19,8 @@ import {
   Expression,
   Var,
   Block,
+  If,
+  While,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -42,6 +45,20 @@ export default class Interpreter
    */
   visitLiteralExpr(expr: Literal): LoxObject {
     return expr.value;
+  }
+
+  /**
+   * Evaluate a logical expression, short-circuiting if needed.
+   */
+  visitLogicalExpr(expr: Logical): LoxObject {
+    const left: LoxObject = this.evaluate(expr.left);
+    // Short-circuit by returning left expression as soon as condition fails
+    if (expr.operator.type === TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+    return this.evaluate(expr.right);
   }
 
   /**
@@ -137,6 +154,16 @@ export default class Interpreter
     this.evaluate(stmt.expression);
   }
 
+  visitIfStmt(stmt: If) {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else {
+      if (stmt.elseBranch) {
+        this.execute(stmt.elseBranch);
+      }
+    }
+  }
+
   visitPrintStmt(stmt: Print) {
     let value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
@@ -146,6 +173,12 @@ export default class Interpreter
     const value =
       stmt.initialiser != null ? this.evaluate(stmt.initialiser) : null;
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitWhileStmt(stmt: While) {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   visitBlockStmt(stmt: Block) {
