@@ -10,6 +10,7 @@ import {
   Logical,
   Grouping,
   Unary,
+  Call,
   Binary,
   Variable,
   Assign,
@@ -27,8 +28,9 @@ import { TokenType } from "./TokenType";
 import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
 import Environment from "./Environment";
+import LoxCallable from "./LoxCallable";
 
-type LoxObject = Object | null;
+export type LoxObject = Object | null;
 
 export default class Interpreter
   implements ExprVisitor<LoxObject>, StmtVisitor<void>
@@ -135,6 +137,20 @@ export default class Interpreter
 
     // Unreachable
     return null;
+  }
+
+  /**
+   * Evaluate a function call expression.
+   */
+  visitCallExpr(expr: Call): LoxObject {
+    const callee: LoxObject = this.evaluate(expr.callee);
+    const args: LoxObject[] = [];
+    for (let arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    const func: LoxCallable = callee as LoxCallable;
+    return func.call(this, args);
   }
 
   /**
