@@ -19,6 +19,7 @@ import {
   Literal,
   Logical,
   Unary,
+  Call,
   Variable,
   Assign,
   Stmt,
@@ -271,8 +272,7 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * unary → ( "!" | "-" ) unary
-   *       | primary ;
+   * unary → ( "!" | "-" ) unary | call ;
    */
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
@@ -280,7 +280,46 @@ export class Parser {
       const right: Expr = this.unary();
       return new Unary(operator, right);
     }
-    return this.primary();
+    return this.call();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * call → primary ( "(" arguments? ")" )* ;
+   */
+  private call(): Expr {
+    let expr: Expr = this.primary();
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+    return expr;
+  }
+
+  /**
+   * Parses arguments provided to a method, including handling for the
+   * zero-argument case.
+   */
+  private finishCall(callee: Expr): Expr {
+    const args: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (args.length >= 255) {
+          this.error(this.peek(), "Can't have mroe than 255 arguments.");
+        }
+        args.push(this.expression());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    const paren = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments."
+    );
+
+    return new Call(callee, paren, args);
   }
 
   /**
