@@ -49,6 +49,12 @@ export class RuntimeError extends Error {
   }
 }
 
+export class BreakError extends Error {
+  constructor(line?: number) {
+    super();
+  }
+}
+
 export default class ErrorHandler {
   hadError = false;
   hadRuntimeError = false;
@@ -57,6 +63,7 @@ export default class ErrorHandler {
     if (err instanceof ParseError) this.reportParseError(err);
     else if (err instanceof LoxError) this.reportLoxError(err);
     else if (err instanceof RuntimeError) this.reportRuntimeError(err);
+    else if (err instanceof BreakError) this.reportBreakError(err);
 
     if (err instanceof ParseError || err instanceof LoxError) {
       this.hadError = true;
@@ -81,5 +88,9 @@ export default class ErrorHandler {
 
   private reportRuntimeError(err: RuntimeError): void {
     console.log(`[line ${err.token.line}] ${err.message}`);
+  }
+
+  private reportBreakError(_: BreakError): void {
+    console.log("Cannot use 'break' outside of a loop.");
   }
 }

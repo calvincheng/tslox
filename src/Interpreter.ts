@@ -21,11 +21,12 @@ import {
   Block,
   If,
   While,
+  Break,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
-import { RuntimeError } from "./ErrorHandler";
+import { RuntimeError, BreakError } from "./ErrorHandler";
 import Environment from "./Environment";
 
 type LoxObject = Object | null;
@@ -33,10 +34,10 @@ type LoxObject = Object | null;
 export default class Interpreter
   implements ExprVisitor<LoxObject>, StmtVisitor<void>
 {
-  private onError: (err: RuntimeError) => void;
+  private onError: (err: RuntimeError | BreakError) => void;
   private environment: Environment = new Environment();
 
-  constructor(onError: (err: RuntimeError) => void) {
+  constructor(onError: (err: RuntimeError | BreakError) => void) {
     this.onError = onError;
   }
 
@@ -176,9 +177,18 @@ export default class Interpreter
   }
 
   visitWhileStmt(stmt: While) {
-    while (this.isTruthy(this.evaluate(stmt.condition))) {
-      this.execute(stmt.body);
+    try {
+      while (this.isTruthy(this.evaluate(stmt.condition))) {
+        this.execute(stmt.body);
+      }
+    } catch (err) {
+      if (err as BreakError) return;
+      throw err;
     }
+  }
+
+  visitBreakStmt(_: Break) {
+    throw new BreakError();
   }
 
   visitBlockStmt(stmt: Block) {
@@ -197,7 +207,11 @@ export default class Interpreter
         this.execute(statement);
       }
     } catch (err) {
-      this.onError(err as RuntimeError);
+      if (err as RuntimeError) {
+        this.onError(err as RuntimeError);
+      } else if (err as BreakError) {
+        this.onError(err as BreakError);
+      }
     }
   }
 

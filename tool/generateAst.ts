@@ -31,6 +31,7 @@
  *                | ifStmt
  *                | printStmt
  *                | whileStmt
+ *                | breakStmt
  *                | block ;
  *
  * exprStmt       → expression ";" ;
@@ -41,6 +42,7 @@
  *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
  * whileStmt      → "while" "(" expression ")" statement ;
+ * breakStmt      → "break" ;
  * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
  */
@@ -204,6 +206,7 @@ function main() {
       { name: "condition", type: "Expr" },
       { name: "body", type: "Stmt" },
     ],
+    Break: [],
   });
 
   // Write to filepath

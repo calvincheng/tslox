@@ -28,6 +28,7 @@ import {
   Block,
   If,
   While,
+  Break,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -79,13 +80,14 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * statement → exprStmt | ifStmt | printStmt | whileStmt | block ;
+   * statement → exprStmt | ifStmt | printStmt | whileStmt | breakStmt | block ;
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
+    if (this.match(TokenType.BREAK)) return this.breakStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
@@ -170,6 +172,14 @@ export class Parser {
 
     const body: Stmt = this.statement();
     return new While(condition, body);
+  }
+
+  /**
+   * Consumes the break statement.
+   */
+  private breakStatement(): Stmt {
+    this.consume(TokenType.SEMICOLON, "Expect ';' after break.");
+    return new Break();
   }
 
   /**
@@ -444,6 +454,7 @@ export class Parser {
         case TokenType.WHILE:
         case TokenType.PRINT:
         case TokenType.RETURN:
+        case TokenType.BREAK:
           return;
       }
 

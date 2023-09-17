@@ -136,6 +136,7 @@ export interface StmtVisitor<R> {
   visitPrintStmt: (stmt: Print) => R;
   visitVarStmt: (stmt: Var) => R;
   visitWhileStmt: (stmt: While) => R;
+  visitBreakStmt: (stmt: Break) => R;
 }
 
 export class Block implements Stmt {
@@ -215,5 +216,13 @@ export class While implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitWhileStmt(this);
+  }
+}
+
+export class Break implements Stmt {
+  constructor() {}
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitBreakStmt(this);
   }
 }
