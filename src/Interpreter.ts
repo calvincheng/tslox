@@ -35,11 +35,26 @@ export type LoxObject = Object | null;
 export default class Interpreter
   implements ExprVisitor<LoxObject>, StmtVisitor<void>
 {
+  globals: Environment = new Environment();
+  private environment: Environment = this.globals;
+
   private onError: (err: RuntimeError) => void;
-  private environment: Environment = new Environment();
 
   constructor(onError: (err: RuntimeError) => void) {
     this.onError = onError;
+
+    // Define 'clock' native function
+    this.globals.define("clock", {
+      arity() {
+        return 0;
+      },
+      call(interpreter: Interpreter, args: LoxObject[]) {
+        return Date.now() / 1000;
+      },
+      toString() {
+        return "<native fn>";
+      },
+    } as LoxCallable);
   }
 
   /**
