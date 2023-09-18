@@ -154,6 +154,12 @@ export default class Interpreter
     }
 
     const func: LoxCallable = callee as LoxCallable;
+    if (args.length != func.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity()} arguments but got ${args.length}.`
+      );
+    }
     return func.call(this, args);
   }
 

@@ -1,6 +1,7 @@
 import Interpreter, { LoxObject } from "./Interpreter";
 
 export default interface LoxCallable {
+  arity: () => number;
   call: (interpreter: Interpreter, args: LoxObject[]) => LoxObject;
 }
 
@@ -8,5 +9,5 @@ export default interface LoxCallable {
  *  (It's also a pretty jank... why is there no keyword for this in TypeScript?)
  */
 export function isLoxCallable(obj: any): obj is LoxCallable {
-  return obj.call !== undefined;
+  return obj.call !== undefined && obj.arity !== undefined;
 }
