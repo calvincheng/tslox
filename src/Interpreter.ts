@@ -28,7 +28,7 @@ import { TokenType } from "./TokenType";
 import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
 import Environment from "./Environment";
-import LoxCallable from "./LoxCallable";
+import LoxCallable, { isLoxCallable } from "./LoxCallable";
 
 export type LoxObject = Object | null;
 
@@ -147,6 +147,10 @@ export default class Interpreter
     const args: LoxObject[] = [];
     for (let arg of expr.args) {
       args.push(this.evaluate(arg));
+    }
+
+    if (!isLoxCallable(callee)) {
+      throw new RuntimeError(expr.paren, "Can only call functions and classes");
     }
 
     const func: LoxCallable = callee as LoxCallable;
