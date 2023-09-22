@@ -270,11 +270,7 @@ export default class Interpreter
     left: LoxObject,
     right: LoxObject
   ) {
-    if (!(typeof left === "number" && typeof right === "number")) {
-      throw new RuntimeError(operator, "Operands must be numbers.");
-    }
-    if (Number(right) === 0) {
-      throw new RuntimeError(operator, "Cannot divide by zero.");
-    }
+    if (typeof left === "number" && typeof right === "number") return;
+    throw new RuntimeError(operator, "Operands must be numbers.");
   }
 }
