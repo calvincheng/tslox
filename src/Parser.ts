@@ -26,6 +26,7 @@ import {
   Print,
   Expression,
   Var,
+  Function,
   Block,
   If,
   While,
@@ -74,6 +75,7 @@ export class Parser {
    * declaration → varDecl | statement ;
    */
   private declaration(): Stmt {
+    if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
   }
@@ -180,6 +182,34 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(value);
+  }
+
+  /**
+   * Consumes a function statement.
+   */
+  private function(kind: string): Function {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      `Expect ${kind} name.`
+    );
+
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const parameters: Token[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+    const body: Stmt[] = this.block();
+    return new Function(name, parameters, body);
   }
 
   /**
