@@ -19,6 +19,7 @@ import {
   Print,
   Expression,
   Var,
+  Function,
   Block,
   If,
   While,
@@ -29,6 +30,7 @@ import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
 import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
+import LoxFunction from "./LoxFunction";
 
 export type LoxObject = Object | null;
 
@@ -195,6 +197,12 @@ export default class Interpreter
     this.evaluate(stmt.expression);
   }
 
+  visitFunctionStmt(stmt: Function) {
+    const func: LoxFunction = new LoxFunction(stmt);
+    this.environment.define(stmt.name.lexeme, func);
+    return null;
+  }
+
   visitIfStmt(stmt: If) {
     if (this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.thenBranch);
@@ -287,7 +295,7 @@ export default class Interpreter
    * Helper method that executes the statements contained within a block.
    * Statements are executed within its own lexical scope (a.k.a. environment).
    */
-  private executeBlock(statements: Stmt[], environment: Environment) {
+  executeBlock(statements: Stmt[], environment: Environment) {
     const previous: Environment = this.environment;
     try {
       this.environment = environment;
