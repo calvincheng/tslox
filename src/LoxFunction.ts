@@ -6,13 +6,15 @@ import { ReturnValue } from "./ErrorHandler";
 
 export default class LoxFunction implements LoxCallable {
   private declaration: Function;
+  private closure: Environment;
 
-  constructor(declaration: Function) {
+  constructor(declaration: Function, closure: Environment) {
     this.declaration = declaration;
+    this.closure = closure;
   }
 
   call(interpreter: Interpreter, args: LoxObject[]) {
-    const environment: Environment = new Environment(interpreter.globals);
+    const environment: Environment = new Environment(this.closure);
     for (let i = 0; i < this.declaration.params.length; i += 1) {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }
