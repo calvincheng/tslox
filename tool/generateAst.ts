@@ -36,6 +36,7 @@
  *                | for Stmt
  *                | ifStmt
  *                | printStmt
+ *                | returnStmt
  *                | whileStmt
  *                | block ;
  *
@@ -46,6 +47,7 @@
  * ifStmt         → "if" "(" expression ")" statement
  *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
+ * returnStmt     → "return" expression? ";" ;
  * whileStmt      → "while" "(" expression ")" statement ;
  * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
@@ -212,6 +214,10 @@ function main() {
       { name: "elseBranch", type: "Stmt | null" },
     ],
     Print: [{ name: "expression", type: "Expr" }],
+    Return: [
+      { name: "keyword", type: "Token" },
+      { name: "value", type: "Expr | null" },
+    ],
     Var: [
       { name: "name", type: "Token" },
       { name: "initialiser", type: "Expr | null" },

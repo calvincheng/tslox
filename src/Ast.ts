@@ -152,6 +152,7 @@ export interface StmtVisitor<R> {
   visitFunctionStmt: (stmt: Function) => R;
   visitIfStmt: (stmt: If) => R;
   visitPrintStmt: (stmt: Print) => R;
+  visitReturnStmt: (stmt: Return) => R;
   visitVarStmt: (stmt: Var) => R;
   visitWhileStmt: (stmt: While) => R;
 }
@@ -221,6 +222,20 @@ export class Print implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+export class Return implements Stmt {
+  keyword: Token;
+  value: Expr | null;
+
+  constructor(keyword: Token, value: Expr | null) {
+    this.keyword = keyword;
+    this.value = value;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitReturnStmt(this);
   }
 }
 
