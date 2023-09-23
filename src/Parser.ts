@@ -24,6 +24,7 @@ import {
   Assign,
   Stmt,
   Print,
+  Return,
   Expression,
   Var,
   Function,
@@ -86,6 +87,7 @@ export class Parser {
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
@@ -114,6 +116,16 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  /**
+   * Consumes the return statement.
+   */
+  private returnStatement(): Stmt {
+    const keyword: Token = this.previous();
+    const value = !this.check(TokenType.SEMICOLON) ? this.expression() : null;
+    this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new Return(keyword, value);
   }
 
   /**
