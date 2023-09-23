@@ -7,6 +7,7 @@
 
 import Token from "./Token";
 import { TokenType } from "./TokenType";
+import { LoxObject } from "./Interpreter";
 
 export class Error {}
 
@@ -46,6 +47,15 @@ export class RuntimeError extends Error {
     this.token = token;
     this.message = message;
     this.line = line;
+  }
+}
+
+export class ReturnWrapper extends Error {
+  value: LoxObject;
+
+  constructor(value: LoxObject) {
+    super();
+    this.value = value;
   }
 }
 

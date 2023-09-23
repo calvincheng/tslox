@@ -2,6 +2,7 @@ import LoxCallable from "./LoxCallable";
 import Interpreter, { LoxObject } from "./Interpreter";
 import { Function } from "./Ast";
 import Environment from "./Environment";
+import { ReturnWrapper } from "./ErrorHandler";
 
 export default class LoxFunction implements LoxCallable {
   private declaration: Function;
@@ -15,7 +16,15 @@ export default class LoxFunction implements LoxCallable {
     for (let i = 0; i < this.declaration.params.length; i += 1) {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }
-    interpreter.executeBlock(this.declaration.body, environment);
+    try {
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (err) {
+      if (err instanceof ReturnWrapper) {
+        let returnValue = err;
+        return returnValue.value;
+      }
+      throw err;
+    }
     return null;
   }
 

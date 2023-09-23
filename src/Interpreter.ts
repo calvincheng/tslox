@@ -17,6 +17,7 @@ import {
   ExprVisitor,
   Stmt,
   Print,
+  Return,
   Expression,
   Var,
   Function,
@@ -27,7 +28,7 @@ import {
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
-import { RuntimeError } from "./ErrorHandler";
+import { RuntimeError, ReturnWrapper } from "./ErrorHandler";
 import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
@@ -216,6 +217,11 @@ export default class Interpreter
   visitPrintStmt(stmt: Print) {
     let value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitReturnStmt(stmt: Return) {
+    const value = stmt.value != null ? this.evaluate(stmt.value) : null;
+    throw new ReturnWrapper(value);
   }
 
   visitVarStmt(stmt: Var) {
