@@ -20,6 +20,7 @@ export interface Expr {
 export interface ExprVisitor<R> {
   visitAssignExpr: (expr: Assign) => R;
   visitBinaryExpr: (expr: Binary) => R;
+  visitCallExpr: (expr: Call) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
@@ -54,6 +55,22 @@ export class Binary implements Expr {
 
   accept<R>(visitor: ExprVisitor<R>): R {
     return visitor.visitBinaryExpr(this);
+  }
+}
+
+export class Call implements Expr {
+  callee: Expr;
+  paren: Token;
+  args: Expr[];
+
+  constructor(callee: Expr, paren: Token, args: Expr[]) {
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitCallExpr(this);
   }
 }
 
@@ -132,8 +149,10 @@ export interface Stmt {
 export interface StmtVisitor<R> {
   visitBlockStmt: (stmt: Block) => R;
   visitExpressionStmt: (stmt: Expression) => R;
+  visitFunctionStmt: (stmt: Function) => R;
   visitIfStmt: (stmt: If) => R;
   visitPrintStmt: (stmt: Print) => R;
+  visitReturnStmt: (stmt: Return) => R;
   visitVarStmt: (stmt: Var) => R;
   visitWhileStmt: (stmt: While) => R;
 }
@@ -162,6 +181,22 @@ export class Expression implements Stmt {
   }
 }
 
+export class Function implements Stmt {
+  name: Token;
+  params: Token[];
+  body: Stmt[];
+
+  constructor(name: Token, params: Token[], body: Stmt[]) {
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitFunctionStmt(this);
+  }
+}
+
 export class If implements Stmt {
   condition: Expr;
   thenBranch: Stmt;
@@ -187,6 +222,20 @@ export class Print implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitPrintStmt(this);
+  }
+}
+
+export class Return implements Stmt {
+  keyword: Token;
+  value: Expr | null;
+
+  constructor(keyword: Token, value: Expr | null) {
+    this.keyword = keyword;
+    this.value = value;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitReturnStmt(this);
   }
 }
 

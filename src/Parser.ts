@@ -19,12 +19,15 @@ import {
   Literal,
   Logical,
   Unary,
+  Call,
   Variable,
   Assign,
   Stmt,
   Print,
+  Return,
   Expression,
   Var,
+  Function,
   Block,
   If,
   While,
@@ -73,6 +76,7 @@ export class Parser {
    * declaration → varDecl | statement ;
    */
   private declaration(): Stmt {
+    if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
   }
@@ -83,6 +87,7 @@ export class Parser {
    */
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
@@ -111,6 +116,16 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new Print(value);
+  }
+
+  /**
+   * Consumes the return statement.
+   */
+  private returnStatement(): Stmt {
+    const keyword: Token = this.previous();
+    const value = !this.check(TokenType.SEMICOLON) ? this.expression() : null;
+    this.consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new Return(keyword, value);
   }
 
   /**
@@ -179,6 +194,34 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(value);
+  }
+
+  /**
+   * Consumes a function statement.
+   */
+  private function(kind: string): Function {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      `Expect ${kind} name.`
+    );
+
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const parameters: Token[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "Can't have more than 255 parameters.");
+        }
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameter name.")
+        );
+      } while (this.match(TokenType.COMMA));
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+    const body: Stmt[] = this.block();
+    return new Function(name, parameters, body);
   }
 
   /**
@@ -271,8 +314,7 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * unary → ( "!" | "-" ) unary
-   *       | primary ;
+   * unary → ( "!" | "-" ) unary | call ;
    */
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
@@ -280,7 +322,46 @@ export class Parser {
       const right: Expr = this.unary();
       return new Unary(operator, right);
     }
-    return this.primary();
+    return this.call();
+  }
+
+  /**
+   * Implements the following grammar production:
+   * call → primary ( "(" arguments? ")" )* ;
+   */
+  private call(): Expr {
+    let expr: Expr = this.primary();
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+    return expr;
+  }
+
+  /**
+   * Parses arguments provided to a method, including handling for the
+   * zero-argument case.
+   */
+  private finishCall(callee: Expr): Expr {
+    const args: Expr[] = [];
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (args.length >= 255) {
+          this.error(this.peek(), "Can't have mroe than 255 arguments.");
+        }
+        args.push(this.expression());
+      } while (this.match(TokenType.COMMA));
+    }
+
+    const paren = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments."
+    );
+
+    return new Call(callee, paren, args);
   }
 
   /**

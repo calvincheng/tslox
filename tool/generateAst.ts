@@ -11,8 +11,9 @@
  * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
- * unary          → ( "!" | "-" ) unary
- *                | primary ;
+ * unary          → ( "!" | "-" ) unary | call ;
+ * call           → primary ( "(" arguments? ")" )* ;
+ * arguments      → expression ( "," expression )* ;
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
@@ -21,8 +22,13 @@
  * (Stmt)
  * program        → declaration* EOF ;
  *
- * declaration    → varDecl
+ * declaration    → funDecl
+ *                | varDecl
  *                | statement ;
+ *
+ * funDecl        → "fun" function;
+ * function       → IDENTIFIER "(" parameters? ")" block;
+ * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
  *
  * varDecl        → "var" IDENTIFIER ( "=" expression)? ";" ;
  *
@@ -30,6 +36,7 @@
  *                | for Stmt
  *                | ifStmt
  *                | printStmt
+ *                | returnStmt
  *                | whileStmt
  *                | block ;
  *
@@ -40,6 +47,7 @@
  * ifStmt         → "if" "(" expression ")" statement
  *                ( "else" statement )? ;
  * printStmt      → "print" expression ";" ;
+ * returnStmt     → "return" expression? ";" ;
  * whileStmt      → "while" "(" expression ")" statement ;
  * block          → "{" declaration "}" ;
  * ---------------------------------------------------------------
@@ -174,6 +182,11 @@ function main() {
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
     ],
+    Call: [
+      { name: "callee", type: "Expr" },
+      { name: "paren", type: "Token" },
+      { name: "args", type: "Expr[]" },
+    ],
     Grouping: [{ name: "expression", type: "Expr" }],
     Literal: [{ name: "value", type: "any" }],
     Logical: [
@@ -190,12 +203,21 @@ function main() {
   defineAst("Stmt", {
     Block: [{ name: "statements", type: "Stmt[]" }],
     Expression: [{ name: "expression", type: "Expr" }],
+    Function: [
+      { name: "name", type: "Token" },
+      { name: "params", type: "Token[]" },
+      { name: "body", type: "Stmt[]" },
+    ],
     If: [
       { name: "condition", type: "Expr" },
       { name: "thenBranch", type: "Stmt" },
       { name: "elseBranch", type: "Stmt | null" },
     ],
     Print: [{ name: "expression", type: "Expr" }],
+    Return: [
+      { name: "keyword", type: "Token" },
+      { name: "value", type: "Expr | null" },
+    ],
     Var: [
       { name: "name", type: "Token" },
       { name: "initialiser", type: "Expr | null" },

@@ -10,14 +10,17 @@ import {
   Logical,
   Grouping,
   Unary,
+  Call,
   Binary,
   Variable,
   Assign,
   ExprVisitor,
   Stmt,
   Print,
+  Return,
   Expression,
   Var,
+  Function,
   Block,
   If,
   While,
@@ -25,19 +28,36 @@ import {
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
-import { RuntimeError } from "./ErrorHandler";
+import { RuntimeError, ReturnValue } from "./ErrorHandler";
 import Environment from "./Environment";
+import LoxCallable, { isLoxCallable } from "./LoxCallable";
+import LoxFunction from "./LoxFunction";
 
-type LoxObject = Object | null;
+export type LoxObject = Object | null;
 
 export default class Interpreter
   implements ExprVisitor<LoxObject>, StmtVisitor<void>
 {
+  globals: Environment = new Environment();
+  private environment: Environment = this.globals;
+
   private onError: (err: RuntimeError) => void;
-  private environment: Environment = new Environment();
 
   constructor(onError: (err: RuntimeError) => void) {
     this.onError = onError;
+
+    // Define 'clock' native function
+    this.globals.define("clock", {
+      arity() {
+        return 0;
+      },
+      call(interpreter: Interpreter, args: LoxObject[]) {
+        return Date.now() / 1000;
+      },
+      toString() {
+        return "<native fn>";
+      },
+    } as LoxCallable);
   }
 
   /**
@@ -138,6 +158,30 @@ export default class Interpreter
   }
 
   /**
+   * Evaluate a function call expression.
+   */
+  visitCallExpr(expr: Call): LoxObject {
+    const callee: LoxObject = this.evaluate(expr.callee);
+    const args: LoxObject[] = [];
+    for (let arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    if (!isLoxCallable(callee)) {
+      throw new RuntimeError(expr.paren, "Can only call functions and classes");
+    }
+
+    const func: LoxCallable = callee as LoxCallable;
+    if (args.length != func.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity()} arguments but got ${args.length}.`
+      );
+    }
+    return func.call(this, args);
+  }
+
+  /**
    * Evaluate a variable expression.
    */
   visitVariableExpr(expr: Variable): LoxObject {
@@ -154,6 +198,12 @@ export default class Interpreter
     this.evaluate(stmt.expression);
   }
 
+  visitFunctionStmt(stmt: Function) {
+    const func: LoxFunction = new LoxFunction(stmt, this.environment);
+    this.environment.define(stmt.name.lexeme, func);
+    return null;
+  }
+
   visitIfStmt(stmt: If) {
     if (this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.thenBranch);
@@ -167,6 +217,11 @@ export default class Interpreter
   visitPrintStmt(stmt: Print) {
     let value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitReturnStmt(stmt: Return) {
+    const value = stmt.value != null ? this.evaluate(stmt.value) : null;
+    throw new ReturnValue(value);
   }
 
   visitVarStmt(stmt: Var) {
@@ -246,7 +301,7 @@ export default class Interpreter
    * Helper method that executes the statements contained within a block.
    * Statements are executed within its own lexical scope (a.k.a. environment).
    */
-  private executeBlock(statements: Stmt[], environment: Environment) {
+  executeBlock(statements: Stmt[], environment: Environment) {
     const previous: Environment = this.environment;
     try {
       this.environment = environment;
