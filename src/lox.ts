@@ -63,4 +63,5 @@ class Lox {
   }
 }
 
-new Lox();
+const filename = process.argv[2] ?? null;
+new Lox(filename);
