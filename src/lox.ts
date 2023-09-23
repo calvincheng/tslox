@@ -3,7 +3,6 @@ import readline from "node:readline";
 import Scanner from "./Scanner";
 import Interpreter from "./Interpreter";
 import { Parser } from "./Parser";
-import { AstPrinter, AstRpnPrinter } from "./AstPrinter";
 import ErrorHandler from "./ErrorHandler";
 import { readLine } from "./utils";
 
