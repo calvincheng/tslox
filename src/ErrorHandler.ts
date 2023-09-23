@@ -50,7 +50,7 @@ export class RuntimeError extends Error {
   }
 }
 
-export class ReturnWrapper extends Error {
+export class ReturnValue extends Error {
   value: LoxObject;
 
   constructor(value: LoxObject) {

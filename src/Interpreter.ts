@@ -28,7 +28,7 @@ import {
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
 import Token from "./Token";
-import { RuntimeError, ReturnWrapper } from "./ErrorHandler";
+import { RuntimeError, ReturnValue } from "./ErrorHandler";
 import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
@@ -221,7 +221,7 @@ export default class Interpreter
 
   visitReturnStmt(stmt: Return) {
     const value = stmt.value != null ? this.evaluate(stmt.value) : null;
-    throw new ReturnWrapper(value);
+    throw new ReturnValue(value);
   }
 
   visitVarStmt(stmt: Var) {

@@ -2,7 +2,7 @@ import LoxCallable from "./LoxCallable";
 import Interpreter, { LoxObject } from "./Interpreter";
 import { Function } from "./Ast";
 import Environment from "./Environment";
-import { ReturnWrapper } from "./ErrorHandler";
+import { ReturnValue } from "./ErrorHandler";
 
 export default class LoxFunction implements LoxCallable {
   private declaration: Function;
@@ -19,7 +19,7 @@ export default class LoxFunction implements LoxCallable {
     try {
       interpreter.executeBlock(this.declaration.body, environment);
     } catch (err) {
-      if (err instanceof ReturnWrapper) {
+      if (err instanceof ReturnValue) {
         let returnValue = err;
         return returnValue.value;
       }
