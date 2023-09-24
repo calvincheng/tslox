@@ -26,6 +26,7 @@ import {
   If,
   While,
   Class,
+  Get,
   StmtVisitor,
 } from "../src/Ast";
 import Interpreter from "./Interpreter";
@@ -129,6 +130,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     for (let arg of expr.args) {
       this.resolveExpr(arg);
     }
+  }
+
+  visitGetExpr(expr: Get) {
+    this.resolveExpr(expr.object);
   }
 
   visitGroupingExpr(expr: Grouping) {
