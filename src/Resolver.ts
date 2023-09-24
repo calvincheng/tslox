@@ -186,6 +186,12 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     if (this.scopes.length === 0) return;
 
     const scope: Map<VariableName, Boolean> = this.scopes.peek();
+    if (scope.has(name.lexeme)) {
+      throw new ParseError(
+        name,
+        "Already a variable with this name in this scope."
+      );
+    }
     scope.set(name.lexeme, false);
   }
 
