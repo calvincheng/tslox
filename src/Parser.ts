@@ -32,6 +32,7 @@ import {
   If,
   While,
   Class,
+  Get,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -341,13 +342,19 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * call → primary ( "(" arguments? ")" )* ;
+   * call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
    */
   private call(): Expr {
     let expr: Expr = this.primary();
     while (true) {
       if (this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        const name: Token = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'"
+        );
+        expr = new Get(expr, name);
       } else {
         break;
       }
