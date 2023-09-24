@@ -3,6 +3,7 @@ import readline from "node:readline";
 import Scanner from "./Scanner";
 import Interpreter from "./Interpreter";
 import { Parser } from "./Parser";
+import Resolver from "./Resolver";
 import ErrorHandler from "./ErrorHandler";
 import { readLine } from "./utils";
 
@@ -56,7 +57,12 @@ class Lox {
     const parser = new Parser(tokens, (err) => this.errorHandler.report(err));
     const statements = parser.parse();
 
-    // Stop if there was a syntax error
+    const resolver = new Resolver(this.interpreter, (err) =>
+      this.errorHandler.report(err)
+    );
+    resolver.resolveStmts(statements);
+
+    // Stop if there was a syntax or resolver error
     if (this.errorHandler.hadError) return;
 
     this.interpreter.interpret(statements);

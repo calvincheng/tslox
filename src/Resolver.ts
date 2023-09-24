@@ -30,7 +30,7 @@ import {
 import Interpreter from "./Interpreter";
 import Token from "./Token";
 import Stack from "./Stack";
-import { ParseError } from "./ErrorHandler";
+import { ResolverError } from "./ErrorHandler";
 
 type VariableName = string;
 
@@ -44,8 +44,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private scopes: Stack<Map<VariableName, Boolean>> = new Stack();
   private currentFunc: FunctionType = FunctionType.NONE;
 
-  constructor(interpreter: Interpreter) {
+  private onError: (err: ResolverError) => void;
+
+  constructor(interpreter: Interpreter, onError: (err: ResolverError) => void) {
     this.interpreter = interpreter;
+    this.onError = onError;
   }
 
   visitBlockStmt(stmt: Block) {
@@ -81,7 +84,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitReturnStmt(stmt: Return) {
     if (this.currentFunc == FunctionType.NONE) {
-      throw new ParseError(stmt.keyword, "Can't return from top-level code.");
+      throw new ResolverError(
+        stmt.keyword,
+        "Can't return from top-level code."
+      );
     }
     if (stmt.value !== null) {
       this.resolveExpr(stmt.value);
@@ -142,7 +148,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       !(this.scopes.length === 0) &&
       this.scopes.peek().get(expr.name.lexeme) === false
     ) {
-      throw new ParseError(
+      throw new ResolverError(
         expr.name,
         "Can't read local variable in its own initialiser."
       );
@@ -151,8 +157,16 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   resolveStmts(statements: Stmt[]) {
-    for (let statement of statements) {
-      this.resolveStmt(statement);
+    try {
+      for (let statement of statements) {
+        this.resolveStmt(statement);
+      }
+    } catch (err) {
+      if (err instanceof ResolverError) {
+        this.onError(err);
+        return;
+      }
+      throw err;
     }
   }
 
@@ -199,7 +213,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
     const scope: Map<VariableName, Boolean> = this.scopes.peek();
     if (scope.has(name.lexeme)) {
-      throw new ParseError(
+      throw new ResolverError(
         name,
         "Already a variable with this name in this scope."
       );
