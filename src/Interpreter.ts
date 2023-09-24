@@ -24,6 +24,7 @@ import {
   Block,
   If,
   While,
+  Class,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -32,6 +33,7 @@ import { RuntimeError, ReturnValue } from "./ErrorHandler";
 import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
+import LoxClass from "./LoxClass";
 
 export type LoxObject = Object | null;
 
@@ -245,6 +247,14 @@ export default class Interpreter
 
   visitBlockStmt(stmt: Block) {
     this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  visitClassStmt(stmt: Class) {
+    // Define before assigning to allow classes to reference itself in its
+    // methods
+    this.environment.define(stmt.name.lexeme, null);
+    const klass: LoxClass = new LoxClass(stmt.name.lexeme);
+    this.environment.assign(stmt.name, klass);
   }
 
   // Public API
