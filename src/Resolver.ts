@@ -25,6 +25,7 @@ import {
   Block,
   If,
   While,
+  Class,
   StmtVisitor,
 } from "../src/Ast";
 import Interpreter from "./Interpreter";
@@ -56,6 +57,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveStmts(stmt.statements);
     this.endScope();
     return null;
+  }
+
+  visitClassStmt(stmt: Class) {
+    this.declare(stmt.name);
+    this.define(stmt.name);
   }
 
   visitExpressionStmt(stmt: Expression) {
