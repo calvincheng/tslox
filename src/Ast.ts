@@ -148,6 +148,7 @@ export interface Stmt {
 
 export interface StmtVisitor<R> {
   visitBlockStmt: (stmt: Block) => R;
+  visitClassStmt: (stmt: Class) => R;
   visitExpressionStmt: (stmt: Expression) => R;
   visitFunctionStmt: (stmt: Function) => R;
   visitIfStmt: (stmt: If) => R;
@@ -166,6 +167,20 @@ export class Block implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitBlockStmt(this);
+  }
+}
+
+export class Class implements Stmt {
+  name: Token;
+  methods: Function[];
+
+  constructor(name: Token, methods: Function[]) {
+    this.name = name;
+    this.methods = methods;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitClassStmt(this);
   }
 }
 

@@ -22,10 +22,12 @@
  * (Stmt)
  * program        → declaration* EOF ;
  *
- * declaration    → funDecl
+ * declaration    → classDecl
+ *                | funDecl
  *                | varDecl
  *                | statement ;
  *
+ * classDecl      → "class" IDENTIFIER "{" function* "}" ;
  * funDecl        → "fun" function;
  * function       → IDENTIFIER "(" parameters? ")" block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -202,6 +204,10 @@ function main() {
   });
   defineAst("Stmt", {
     Block: [{ name: "statements", type: "Stmt[]" }],
+    Class: [
+      { name: "name", type: "Token" },
+      { name: "methods", type: "Function[]" },
+    ],
     Expression: [{ name: "expression", type: "Expr" }],
     Function: [
       { name: "name", type: "Token" },
