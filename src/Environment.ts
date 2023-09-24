@@ -74,7 +74,7 @@ export default class Environment {
    */
   getAt(distance: number, name: Token): LoxObject {
     let object = this.ancestor(distance).values.get(name.lexeme);
-    if (object) return object;
+    if (object !== undefined) return object;
     throw new RuntimeError(
       name,
       `Failed to get variable ${name.lexeme} from an environment ${distance} steps away. Did the resolver fail?`
