@@ -37,6 +37,19 @@ export class ParseError extends Error {
   }
 }
 
+export class ResolverError extends Error {
+  message: string;
+  line?: number;
+  token: Token;
+
+  constructor(token: Token, message: string, line?: number) {
+    super();
+    this.token = token;
+    this.message = message;
+    this.line = line;
+  }
+}
+
 export class RuntimeError extends Error {
   message: string;
   line?: number;
@@ -67,8 +80,13 @@ export default class ErrorHandler {
     if (err instanceof ParseError) this.reportParseError(err);
     else if (err instanceof LoxError) this.reportLoxError(err);
     else if (err instanceof RuntimeError) this.reportRuntimeError(err);
+    else if (err instanceof ResolverError) this.reportResolverError(err);
 
-    if (err instanceof ParseError || err instanceof LoxError) {
+    if (
+      err instanceof ResolverError ||
+      err instanceof ParseError ||
+      err instanceof LoxError
+    ) {
       this.hadError = true;
     } else if (err instanceof RuntimeError) {
       this.hadRuntimeError = true;
@@ -90,6 +108,10 @@ export default class ErrorHandler {
   }
 
   private reportRuntimeError(err: RuntimeError): void {
+    console.log(`[line ${err.token.line}] ${err.message}`);
+  }
+
+  private reportResolverError(err: ResolverError): void {
     console.log(`[line ${err.token.line}] ${err.message}`);
   }
 }
