@@ -34,11 +34,15 @@ import { ParseError } from "./ErrorHandler";
 
 type VariableName = string;
 
+export enum FunctionType {
+  NONE = "NONE",
+  FUNCTION = "FUNCTION",
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private interpreter: Interpreter;
   private scopes: Stack<Map<VariableName, Boolean>> = new Stack();
+  private currentFunc: FunctionType = FunctionType.NONE;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -76,6 +80,9 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitReturnStmt(stmt: Return) {
+    if (this.currentFunc == FunctionType.NONE) {
+      throw new ParseError(stmt.keyword, "Can't return from top-level code.");
+    }
     if (stmt.value !== null) {
       this.resolveExpr(stmt.value);
     }
@@ -158,6 +165,9 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   private resolveFunction(func: Function, type: FunctionType) {
+    const enclosingFunc = this.currentFunc;
+    this.currentFunc = type;
+
     this.beginScope();
     for (let param of func.params) {
       this.declare(param);
@@ -165,6 +175,8 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
     this.resolveStmts(func.body);
     this.endScope();
+
+    this.currentFunc = enclosingFunc;
   }
 
   private beginScope() {
