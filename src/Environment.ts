@@ -68,6 +68,10 @@ export default class Environment {
     throw new RuntimeError(name, `Undefined variable ${name.lexeme}.`);
   }
 
+  /**
+   * Fetches a variable's value from an environment at `distance` steps away
+   * from the current scope. Throws an error if the variable isn't found.
+   */
   getAt(distance: number, name: Token): LoxObject {
     let object = this.ancestor(distance).values.get(name.lexeme);
     if (object) return object;
@@ -77,6 +81,10 @@ export default class Environment {
     );
   }
 
+  /**
+   * Assigns a value to a variable at an environment at `distance` steps away
+   * from the current scope.
+   */
   assignAt(distance: number, name: Token, value: LoxObject) {
     this.ancestor(distance).values.set(name.lexeme, value);
   }
