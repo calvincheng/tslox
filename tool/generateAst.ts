@@ -12,7 +12,7 @@
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  * unary          → ( "!" | "-" ) unary | call ;
- * call           → primary ( "(" arguments? ")" )* ;
+ * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  * arguments      → expression ( "," expression )* ;
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
@@ -188,6 +188,10 @@ function main() {
       { name: "callee", type: "Expr" },
       { name: "paren", type: "Token" },
       { name: "args", type: "Expr[]" },
+    ],
+    Get: [
+      { name: "object", type: "Expr" },
+      { name: "name", type: "Token" },
     ],
     Grouping: [{ name: "expression", type: "Expr" }],
     Literal: [{ name: "value", type: "any" }],
