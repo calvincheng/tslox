@@ -27,6 +27,7 @@ import {
   While,
   Class,
   Get,
+  Set,
   StmtVisitor,
 } from "../src/Ast";
 import Interpreter from "./Interpreter";
@@ -148,6 +149,11 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitLogicalExpr(expr: Logical) {
     this.resolveExpr(expr.left);
     this.resolveExpr(expr.right);
+  }
+
+  visitSetExpr(expr: Set) {
+    this.resolveExpr(expr.value);
+    this.resolveExpr(expr.object);
   }
 
   visitUnaryExpr(expr: Unary) {
