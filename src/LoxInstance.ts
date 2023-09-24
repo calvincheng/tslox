@@ -21,4 +21,8 @@ export default class LoxInstance {
     }
     throw new RuntimeError(name, `Undefined property '${name.lexeme}'.`);
   }
+
+  set(name: Token, value: LoxObject) {
+    this.fields.set(name.lexeme, value);
+  }
 }

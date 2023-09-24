@@ -26,6 +26,7 @@ import {
   While,
   Class,
   Get,
+  Set,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -84,6 +85,16 @@ export default class Interpreter
       if (!this.isTruthy(left)) return left;
     }
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: Set): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+    const value: LoxObject = this.evaluate(expr.value);
+    (object as LoxInstance).set(expr.name, value);
+    return value;
   }
 
   /**
