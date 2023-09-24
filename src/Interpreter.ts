@@ -25,6 +25,7 @@ import {
   If,
   While,
   Class,
+  Get,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -34,6 +35,7 @@ import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
 import LoxClass from "./LoxClass";
+import LoxInstance from "./LoxInstance";
 
 export type LoxObject = Object | null;
 
@@ -182,6 +184,17 @@ export default class Interpreter
       );
     }
     return func.call(this, args);
+  }
+
+  /**
+   * Evaluates a get expression.
+   */
+  visitGetExpr(expr: Get): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+    if (object instanceof LoxInstance) {
+      return (object as LoxInstance).get(expr.name);
+    }
+    throw new RuntimeError(expr.name, "Only instances have properties.");
   }
 
   /**
