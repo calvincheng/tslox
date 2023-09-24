@@ -33,6 +33,7 @@ import {
   While,
   Class,
   Get,
+  Set,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -388,8 +389,8 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * primary → NUMBER | STRING | "true" | "false" | "nil"
-   *         | "(" expression ")" ;
-   *         | IDENTIFIER
+   *         | "(" expression ")"
+   *         | IDENTIFIER ;
    */
   private primary(): Expr {
     if (this.match(TokenType.FALSE)) return new Literal(false);
@@ -410,7 +411,11 @@ export class Parser {
   }
 
   /**
-   * Refer to section 8.4.1 in Crafting Interpreters
+   * Implements the following grammar production:
+   * assignment → ( call "." )? IDENTIFIER "=" assignment
+   *            | logic_or ;
+   *
+   * (Refer to section 8.4.1 in Crafting Interpreters).
    */
   private assignment(): Expr {
     const expr: Expr = this.or();
@@ -420,6 +425,9 @@ export class Parser {
       if (expr instanceof Variable) {
         const name = (expr as Variable).name;
         return new Assign(name, value);
+      } else if (expr instanceof Get) {
+        const get: Get = expr as Get;
+        return new Set(get.object, get.name, value);
       }
       this.error(equals, "Invalid assignment target.");
     }
