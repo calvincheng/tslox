@@ -40,6 +40,7 @@ export default class Interpreter
 {
   globals: Environment = new Environment();
   private environment: Environment = this.globals;
+  private locals = new Map<Expr, number>();
 
   private onError: (err: RuntimeError) => void;
 
@@ -185,12 +186,18 @@ export default class Interpreter
    * Evaluate a variable expression.
    */
   visitVariableExpr(expr: Variable): LoxObject {
-    return this.environment.get(expr.name);
+    return this.lookUpVariable(expr.name, expr);
   }
 
   visitAssignExpr(expr: Assign): LoxObject {
     const value = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+
+    const distance = this.locals.get(expr);
+    if (distance) {
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      this.globals.assign(expr.name, value);
+    }
     return value;
   }
 
@@ -298,6 +305,13 @@ export default class Interpreter
   }
 
   /**
+   * Store the Resolver's results to be used at runtime.
+   */
+  resolve(expr: Expr, depth: number) {
+    this.locals.set(expr, depth);
+  }
+
+  /**
    * Helper method that executes the statements contained within a block.
    * Statements are executed within its own lexical scope (a.k.a. environment).
    */
@@ -327,5 +341,23 @@ export default class Interpreter
   ) {
     if (typeof left === "number" && typeof right === "number") return;
     throw new RuntimeError(operator, "Operands must be numbers.");
+  }
+
+  // Private methods -- variable resolution
+
+  /**
+   * Look up local varaibles in the `locals` map.
+   *
+   * If found, we leverage the result of the Resolver's static analysis and
+   * fetch it directly with `Environment.getAt`.
+   * If it's not found, the variable must be global.
+   */
+  private lookUpVariable(name: Token, expr: Expr): LoxObject {
+    if (this.locals.has(expr)) {
+      const distance = this.locals.get(expr)!;
+      return this.environment.getAt(distance, name);
+    } else {
+      return this.globals.get(name);
+    }
   }
 }
