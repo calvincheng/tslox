@@ -3,7 +3,7 @@
  * --------------------------------------------------------------
  * (Expr)
  * expression     → assignment ;
- * assignment     → IDENTIFIER "=" assignment
+ * assignment     → ( call "." )? IDENTIFIER "=" assignment
  *                | logic_or ;
  * logic_or       → logic_and ( "or" logic_and )* ;
  * logic_and      → equality ( "and" equality )* ;
@@ -199,6 +199,11 @@ function main() {
       { name: "left", type: "Expr" },
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
+    ],
+    Set: [
+      { name: "object", type: "Expr" },
+      { name: "name", type: "Token" },
+      { name: "value", type: "Expr" },
     ],
     Unary: [
       { name: "operator", type: "Token" },
