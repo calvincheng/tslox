@@ -277,7 +277,14 @@ export default class Interpreter
     // Define before assigning to allow classes to reference itself in its
     // methods
     this.environment.define(stmt.name.lexeme, null);
-    const klass: LoxClass = new LoxClass(stmt.name.lexeme);
+
+    const methods = new Map<string, LoxFunction>();
+    for (let method of stmt.methods) {
+      const func = new LoxFunction(method, this.environment);
+      methods.set(method.name.lexeme, func);
+    }
+
+    const klass: LoxClass = new LoxClass(stmt.name.lexeme, methods);
     this.environment.assign(stmt.name, klass);
   }
 
