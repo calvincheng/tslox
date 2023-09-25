@@ -28,6 +28,7 @@ import {
   Class,
   Get,
   Set,
+  This,
   StmtVisitor,
 } from "../src/Ast";
 import Interpreter from "./Interpreter";
@@ -159,6 +160,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitSetExpr(expr: Set) {
     this.resolveExpr(expr.value);
     this.resolveExpr(expr.object);
+  }
+
+  visitThisExpr(expr: This) {
+    this.resolveLocal(expr, expr.keyword);
   }
 
   visitUnaryExpr(expr: Unary) {
