@@ -1,6 +1,5 @@
 import LoxClass from "./LoxClass";
 import { LoxObject } from "./Interpreter";
-import LoxFunction from "./LoxFunction";
 import Token from "./Token";
 import { RuntimeError } from "./ErrorHandler";
 
@@ -21,7 +20,7 @@ export default class LoxInstance {
       return this.fields.get(name.lexeme)!;
     }
     const method = this.klass.findMethod(name.lexeme);
-    if (method !== null) return method;
+    if (method !== null) return method.bind(this);
     throw new RuntimeError(name, `Undefined property '${name.lexeme}'.`);
   }
 

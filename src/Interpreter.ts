@@ -27,6 +27,7 @@ import {
   Class,
   Get,
   Set,
+  This,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -95,6 +96,10 @@ export default class Interpreter
     const value: LoxObject = this.evaluate(expr.value);
     (object as LoxInstance).set(expr.name, value);
     return value;
+  }
+
+  visitThisExpr(expr: This): LoxObject {
+    return this.lookUpVariable(expr.keyword, expr);
   }
 
   /**

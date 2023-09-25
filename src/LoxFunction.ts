@@ -1,4 +1,5 @@
 import LoxCallable from "./LoxCallable";
+import LoxInstance from "./LoxInstance";
 import Interpreter, { LoxObject } from "./Interpreter";
 import { Function } from "./Ast";
 import Environment from "./Environment";
@@ -11,6 +12,12 @@ export default class LoxFunction implements LoxCallable {
   constructor(declaration: Function, closure: Environment) {
     this.declaration = declaration;
     this.closure = closure;
+  }
+
+  bind(instance: LoxInstance): LoxFunction {
+    const environment = new Environment(this.closure);
+    environment.define("this", instance);
+    return new LoxFunction(this.declaration, environment);
   }
 
   call(interpreter: Interpreter, args: LoxObject[]) {
