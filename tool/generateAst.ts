@@ -205,6 +205,7 @@ function main() {
       { name: "name", type: "Token" },
       { name: "value", type: "Expr" },
     ],
+    This: [{ name: "keyword", type: "Token" }],
     Unary: [
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
