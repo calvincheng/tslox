@@ -40,6 +40,7 @@ type VariableName = string;
 export enum FunctionType {
   NONE = "NONE",
   FUNCTION = "FUNCTION",
+  METHOD = "METHOD",
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -64,6 +65,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitClassStmt(stmt: Class) {
     this.declare(stmt.name);
     this.define(stmt.name);
+    for (let method of stmt.methods) {
+      const declaration: FunctionType = FunctionType.METHOD;
+      this.resolveFunction(method, declaration);
+    }
   }
 
   visitExpressionStmt(stmt: Expression) {
