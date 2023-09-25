@@ -44,10 +44,16 @@ export enum FunctionType {
   METHOD = "METHOD",
 }
 
+export enum ClassType {
+  NONE = "NONE",
+  CLASS = "CLASS",
+}
+
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private interpreter: Interpreter;
   private scopes: Stack<Map<VariableName, Boolean>> = new Stack();
   private currentFunc: FunctionType = FunctionType.NONE;
+  private currentClass: ClassType = ClassType.NONE;
 
   private onError: (err: ResolverError) => void;
 
@@ -64,12 +70,23 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: Class) {
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.CLASS;
+
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    this.beginScope();
+    this.scopes.peek().set("this", true);
+
     for (let method of stmt.methods) {
       const declaration: FunctionType = FunctionType.METHOD;
       this.resolveFunction(method, declaration);
     }
+
+    this.endScope();
+
+    this.currentClass = enclosingClass;
   }
 
   visitExpressionStmt(stmt: Expression) {
@@ -163,6 +180,12 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: This) {
+    if (this.currentClass !== ClassType.CLASS) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'this' outside of a class."
+      );
+    }
     this.resolveLocal(expr, expr.keyword);
   }
 
