@@ -25,10 +25,16 @@ export default class LoxClass implements LoxCallable {
 
   call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
     const instance: LoxInstance = new LoxInstance(this);
+    const initialiser = this.findMethod("init");
+    if (initialiser !== null) {
+      initialiser.bind(instance).call(interpreter, args);
+    }
     return instance;
   }
 
   arity(): number {
-    return 0;
+    const initialiser = this.findMethod("init");
+    if (initialiser === null) return 0;
+    return initialiser.arity();
   }
 }
