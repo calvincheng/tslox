@@ -41,6 +41,7 @@ type VariableName = string;
 export enum FunctionType {
   NONE = "NONE",
   FUNCTION = "FUNCTION",
+  INITIALISER = "INITIALISER",
   METHOD = "METHOD",
 }
 
@@ -80,7 +81,9 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.scopes.peek().set("this", true);
 
     for (let method of stmt.methods) {
-      const declaration: FunctionType = FunctionType.METHOD;
+      const declaration: FunctionType = !(method.name.lexeme === "init")
+        ? FunctionType.METHOD
+        : FunctionType.INITIALISER;
       this.resolveFunction(method, declaration);
     }
 
@@ -121,6 +124,12 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       );
     }
     if (stmt.value !== null) {
+      if (this.currentFunc === FunctionType.INITIALISER) {
+        throw new ResolverError(
+          stmt.keyword,
+          "Can't return a value from an initialiser."
+        );
+      }
       this.resolveExpr(stmt.value);
     }
   }

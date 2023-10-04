@@ -44,6 +44,8 @@ export default class LoxFunction implements LoxCallable {
     } catch (err) {
       if (err instanceof ReturnValue) {
         let returnValue = err;
+        // Empty returns in init() returns `this` (the instance)
+        if (this.isInitialiser) return this.instance!;
         return returnValue.value;
       }
       throw err;
