@@ -21,9 +21,12 @@ export interface ExprVisitor<R> {
   visitAssignExpr: (expr: Assign) => R;
   visitBinaryExpr: (expr: Binary) => R;
   visitCallExpr: (expr: Call) => R;
+  visitGetExpr: (expr: Get) => R;
   visitGroupingExpr: (expr: Grouping) => R;
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
+  visitSetExpr: (expr: Set) => R;
+  visitThisExpr: (expr: This) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitVariableExpr: (expr: Variable) => R;
 }
@@ -74,6 +77,20 @@ export class Call implements Expr {
   }
 }
 
+export class Get implements Expr {
+  object: Expr;
+  name: Token;
+
+  constructor(object: Expr, name: Token) {
+    this.object = object;
+    this.name = name;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitGetExpr(this);
+  }
+}
+
 export class Grouping implements Expr {
   expression: Expr;
 
@@ -114,6 +131,34 @@ export class Logical implements Expr {
   }
 }
 
+export class Set implements Expr {
+  object: Expr;
+  name: Token;
+  value: Expr;
+
+  constructor(object: Expr, name: Token, value: Expr) {
+    this.object = object;
+    this.name = name;
+    this.value = value;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitSetExpr(this);
+  }
+}
+
+export class This implements Expr {
+  keyword: Token;
+
+  constructor(keyword: Token) {
+    this.keyword = keyword;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitThisExpr(this);
+  }
+}
+
 export class Unary implements Expr {
   operator: Token;
   right: Expr;
@@ -148,6 +193,7 @@ export interface Stmt {
 
 export interface StmtVisitor<R> {
   visitBlockStmt: (stmt: Block) => R;
+  visitClassStmt: (stmt: Class) => R;
   visitExpressionStmt: (stmt: Expression) => R;
   visitFunctionStmt: (stmt: Function) => R;
   visitIfStmt: (stmt: If) => R;
@@ -166,6 +212,20 @@ export class Block implements Stmt {
 
   accept<R>(visitor: StmtVisitor<R>): R {
     return visitor.visitBlockStmt(this);
+  }
+}
+
+export class Class implements Stmt {
+  name: Token;
+  methods: Function[];
+
+  constructor(name: Token, methods: Function[]) {
+    this.name = name;
+    this.methods = methods;
+  }
+
+  accept<R>(visitor: StmtVisitor<R>): R {
+    return visitor.visitClassStmt(this);
   }
 }
 

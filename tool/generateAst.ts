@@ -3,7 +3,7 @@
  * --------------------------------------------------------------
  * (Expr)
  * expression     → assignment ;
- * assignment     → IDENTIFIER "=" assignment
+ * assignment     → ( call "." )? IDENTIFIER "=" assignment
  *                | logic_or ;
  * logic_or       → logic_and ( "or" logic_and )* ;
  * logic_and      → equality ( "and" equality )* ;
@@ -12,7 +12,7 @@
  * term           → factor ( ( "-" | "+" ) factor )* ;
  * factor         → unary ( ( "/" | "*" ) unary )* ;
  * unary          → ( "!" | "-" ) unary | call ;
- * call           → primary ( "(" arguments? ")" )* ;
+ * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
  * arguments      → expression ( "," expression )* ;
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
@@ -22,10 +22,12 @@
  * (Stmt)
  * program        → declaration* EOF ;
  *
- * declaration    → funDecl
+ * declaration    → classDecl
+ *                | funDecl
  *                | varDecl
  *                | statement ;
  *
+ * classDecl      → "class" IDENTIFIER "{" function* "}" ;
  * funDecl        → "fun" function;
  * function       → IDENTIFIER "(" parameters? ")" block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -187,6 +189,10 @@ function main() {
       { name: "paren", type: "Token" },
       { name: "args", type: "Expr[]" },
     ],
+    Get: [
+      { name: "object", type: "Expr" },
+      { name: "name", type: "Token" },
+    ],
     Grouping: [{ name: "expression", type: "Expr" }],
     Literal: [{ name: "value", type: "any" }],
     Logical: [
@@ -194,6 +200,12 @@ function main() {
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
     ],
+    Set: [
+      { name: "object", type: "Expr" },
+      { name: "name", type: "Token" },
+      { name: "value", type: "Expr" },
+    ],
+    This: [{ name: "keyword", type: "Token" }],
     Unary: [
       { name: "operator", type: "Token" },
       { name: "right", type: "Expr" },
@@ -202,6 +214,10 @@ function main() {
   });
   defineAst("Stmt", {
     Block: [{ name: "statements", type: "Stmt[]" }],
+    Class: [
+      { name: "name", type: "Token" },
+      { name: "methods", type: "Function[]" },
+    ],
     Expression: [{ name: "expression", type: "Expr" }],
     Function: [
       { name: "name", type: "Token" },

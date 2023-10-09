@@ -25,6 +25,10 @@ import {
   Block,
   If,
   While,
+  Class,
+  Get,
+  Set,
+  This,
   StmtVisitor,
 } from "../src/Ast";
 import Interpreter from "./Interpreter";
@@ -37,12 +41,20 @@ type VariableName = string;
 export enum FunctionType {
   NONE = "NONE",
   FUNCTION = "FUNCTION",
+  INITIALISER = "INITIALISER",
+  METHOD = "METHOD",
+}
+
+export enum ClassType {
+  NONE = "NONE",
+  CLASS = "CLASS",
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private interpreter: Interpreter;
   private scopes: Stack<Map<VariableName, Boolean>> = new Stack();
   private currentFunc: FunctionType = FunctionType.NONE;
+  private currentClass: ClassType = ClassType.NONE;
 
   private onError: (err: ResolverError) => void;
 
@@ -56,6 +68,28 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveStmts(stmt.statements);
     this.endScope();
     return null;
+  }
+
+  visitClassStmt(stmt: Class) {
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.CLASS;
+
+    this.declare(stmt.name);
+    this.define(stmt.name);
+
+    this.beginScope();
+    this.scopes.peek().set("this", true);
+
+    for (let method of stmt.methods) {
+      const declaration: FunctionType = !(method.name.lexeme === "init")
+        ? FunctionType.METHOD
+        : FunctionType.INITIALISER;
+      this.resolveFunction(method, declaration);
+    }
+
+    this.endScope();
+
+    this.currentClass = enclosingClass;
   }
 
   visitExpressionStmt(stmt: Expression) {
@@ -90,6 +124,12 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       );
     }
     if (stmt.value !== null) {
+      if (this.currentFunc === FunctionType.INITIALISER) {
+        throw new ResolverError(
+          stmt.keyword,
+          "Can't return a value from an initialiser."
+        );
+      }
       this.resolveExpr(stmt.value);
     }
   }
@@ -125,6 +165,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
+  visitGetExpr(expr: Get) {
+    this.resolveExpr(expr.object);
+  }
+
   visitGroupingExpr(expr: Grouping) {
     this.resolveExpr(expr.expression);
   }
@@ -137,6 +181,21 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitLogicalExpr(expr: Logical) {
     this.resolveExpr(expr.left);
     this.resolveExpr(expr.right);
+  }
+
+  visitSetExpr(expr: Set) {
+    this.resolveExpr(expr.value);
+    this.resolveExpr(expr.object);
+  }
+
+  visitThisExpr(expr: This) {
+    if (this.currentClass !== ClassType.CLASS) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'this' outside of a class."
+      );
+    }
+    this.resolveLocal(expr, expr.keyword);
   }
 
   visitUnaryExpr(expr: Unary) {

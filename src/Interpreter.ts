@@ -24,6 +24,10 @@ import {
   Block,
   If,
   While,
+  Class,
+  Get,
+  Set,
+  This,
   StmtVisitor,
 } from "../src/Ast";
 import { TokenType } from "./TokenType";
@@ -32,6 +36,8 @@ import { RuntimeError, ReturnValue } from "./ErrorHandler";
 import Environment from "./Environment";
 import LoxCallable, { isLoxCallable } from "./LoxCallable";
 import LoxFunction from "./LoxFunction";
+import LoxClass from "./LoxClass";
+import LoxInstance from "./LoxInstance";
 
 export type LoxObject = Object | null;
 
@@ -80,6 +86,20 @@ export default class Interpreter
       if (!this.isTruthy(left)) return left;
     }
     return this.evaluate(expr.right);
+  }
+
+  visitSetExpr(expr: Set): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+    const value: LoxObject = this.evaluate(expr.value);
+    (object as LoxInstance).set(expr.name, value);
+    return value;
+  }
+
+  visitThisExpr(expr: This): LoxObject {
+    return this.lookUpVariable(expr.keyword, expr);
   }
 
   /**
@@ -183,6 +203,17 @@ export default class Interpreter
   }
 
   /**
+   * Evaluates a get expression.
+   */
+  visitGetExpr(expr: Get): LoxObject {
+    const object: LoxObject = this.evaluate(expr.object);
+    if (object instanceof LoxInstance) {
+      return (object as LoxInstance).get(expr.name);
+    }
+    throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
+  /**
    * Evaluate a variable expression.
    */
   visitVariableExpr(expr: Variable): LoxObject {
@@ -206,7 +237,7 @@ export default class Interpreter
   }
 
   visitFunctionStmt(stmt: Function) {
-    const func: LoxFunction = new LoxFunction(stmt, this.environment);
+    const func: LoxFunction = new LoxFunction(stmt, this.environment, false);
     this.environment.define(stmt.name.lexeme, func);
     return null;
   }
@@ -245,6 +276,25 @@ export default class Interpreter
 
   visitBlockStmt(stmt: Block) {
     this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  visitClassStmt(stmt: Class) {
+    // Define before assigning to allow classes to reference itself in its
+    // methods
+    this.environment.define(stmt.name.lexeme, null);
+
+    const methods = new Map<string, LoxFunction>();
+    for (let method of stmt.methods) {
+      const func = new LoxFunction(
+        method,
+        this.environment,
+        method.name.lexeme === "init"
+      );
+      methods.set(method.name.lexeme, func);
+    }
+
+    const klass: LoxClass = new LoxClass(stmt.name.lexeme, methods);
+    this.environment.assign(stmt.name, klass);
   }
 
   // Public API

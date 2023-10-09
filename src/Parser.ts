@@ -31,6 +31,10 @@ import {
   Block,
   If,
   While,
+  Class,
+  Get,
+  Set,
+  This,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
 
@@ -76,6 +80,7 @@ export class Parser {
    * declaration → varDecl | statement ;
    */
   private declaration(): Stmt {
+    if (this.match(TokenType.CLASS)) return this.classDeclaration();
     if (this.match(TokenType.FUN)) return this.function("function");
     if (this.match(TokenType.VAR)) return this.varDeclaration();
     return this.statement();
@@ -194,6 +199,18 @@ export class Parser {
     const value: Expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new Expression(value);
+  }
+
+  private classDeclaration(): Stmt {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    let methods: Function[] = [];
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.function("method"));
+    }
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+    return new Class(name, methods);
   }
 
   /**
@@ -327,13 +344,19 @@ export class Parser {
 
   /**
    * Implements the following grammar production:
-   * call → primary ( "(" arguments? ")" )* ;
+   * call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
    */
   private call(): Expr {
     let expr: Expr = this.primary();
     while (true) {
       if (this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr);
+      } else if (this.match(TokenType.DOT)) {
+        const name: Token = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'"
+        );
+        expr = new Get(expr, name);
       } else {
         break;
       }
@@ -367,8 +390,8 @@ export class Parser {
   /**
    * Implements the following grammar production:
    * primary → NUMBER | STRING | "true" | "false" | "nil"
-   *         | "(" expression ")" ;
-   *         | IDENTIFIER
+   *         | "(" expression ")"
+   *         | IDENTIFIER ;
    */
   private primary(): Expr {
     if (this.match(TokenType.FALSE)) return new Literal(false);
@@ -377,6 +400,7 @@ export class Parser {
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
     }
+    if (this.match(TokenType.THIS)) return new This(this.previous());
     if (this.match(TokenType.IDENTIFIER)) {
       return new Variable(this.previous());
     }
@@ -389,7 +413,11 @@ export class Parser {
   }
 
   /**
-   * Refer to section 8.4.1 in Crafting Interpreters
+   * Implements the following grammar production:
+   * assignment → ( call "." )? IDENTIFIER "=" assignment
+   *            | logic_or ;
+   *
+   * (Refer to section 8.4.1 in Crafting Interpreters).
    */
   private assignment(): Expr {
     const expr: Expr = this.or();
@@ -399,6 +427,9 @@ export class Parser {
       if (expr instanceof Variable) {
         const name = (expr as Variable).name;
         return new Assign(name, value);
+      } else if (expr instanceof Get) {
+        const get: Get = expr as Get;
+        return new Set(get.object, get.name, value);
       }
       this.error(equals, "Invalid assignment target.");
     }
