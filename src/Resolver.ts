@@ -77,6 +77,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    if (stmt.superclass !== null) {
+      this.resolveExpr(stmt.superclass);
+    }
+
     this.beginScope();
     this.scopes.peek().set("this", true);
 
