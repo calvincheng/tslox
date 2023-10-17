@@ -217,10 +217,12 @@ export class Block implements Stmt {
 
 export class Class implements Stmt {
   name: Token;
+  superclass: Variable | null;
   methods: Function[];
 
-  constructor(name: Token, methods: Function[]) {
+  constructor(name: Token, superclass: Variable | null, methods: Function[]) {
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
 

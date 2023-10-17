@@ -27,7 +27,7 @@
  *                | varDecl
  *                | statement ;
  *
- * classDecl      → "class" IDENTIFIER "{" function* "}" ;
+ * classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
  * funDecl        → "fun" function;
  * function       → IDENTIFIER "(" parameters? ")" block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -216,6 +216,7 @@ function main() {
     Block: [{ name: "statements", type: "Stmt[]" }],
     Class: [
       { name: "name", type: "Token" },
+      { name: "superclass", type: "Variable | null" },
       { name: "methods", type: "Function[]" },
     ],
     Expression: [{ name: "expression", type: "Expr" }],
