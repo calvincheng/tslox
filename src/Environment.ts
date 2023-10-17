@@ -72,13 +72,15 @@ export default class Environment {
    * Fetches a variable's value from an environment at `distance` steps away
    * from the current scope. Throws an error if the variable isn't found.
    */
-  getAt(distance: number, name: Token): LoxObject {
-    let object = this.ancestor(distance).values.get(name.lexeme);
-    if (object !== undefined) return object;
-    throw new RuntimeError(
-      name,
-      `Failed to get variable ${name.lexeme} from an environment ${distance} steps away. Did the resolver fail?`
-    );
+  getAt(distance: number, name: string): LoxObject {
+    if (this.ancestor(distance).values.has(name)) {
+      let object = this.ancestor(distance).values.get(name)!;
+      return object;
+    } else {
+      // TODO: Throw an error here as the resolver should already have found
+      // this variable before.
+      return null;
+    }
   }
 
   /**

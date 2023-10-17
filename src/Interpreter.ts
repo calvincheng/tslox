@@ -405,7 +405,7 @@ export default class Interpreter
   private lookUpVariable(name: Token, expr: Expr): LoxObject {
     if (this.locals.has(expr)) {
       const distance = this.locals.get(expr)!;
-      return this.environment.getAt(distance, name);
+      return this.environment.getAt(distance, name.lexeme);
     } else {
       return this.globals.get(name);
     }
