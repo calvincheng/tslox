@@ -279,6 +279,16 @@ export default class Interpreter
   }
 
   visitClassStmt(stmt: Class) {
+    let superclass: LoxObject | null = null;
+    if (stmt.superclass !== null) {
+      superclass = this.evaluate(stmt.superclass);
+      if (!(superclass instanceof LoxClass)) {
+        throw new RuntimeError(
+          stmt.superclass.name,
+          "Superclass must be a class"
+        );
+      }
+    }
     // Define before assigning to allow classes to reference itself in its
     // methods
     this.environment.define(stmt.name.lexeme, null);
@@ -293,7 +303,11 @@ export default class Interpreter
       methods.set(method.name.lexeme, func);
     }
 
-    const klass: LoxClass = new LoxClass(stmt.name.lexeme, methods);
+    const klass: LoxClass = new LoxClass(
+      stmt.name.lexeme,
+      superclass as LoxClass,
+      methods
+    );
     this.environment.assign(stmt.name, klass);
   }
 

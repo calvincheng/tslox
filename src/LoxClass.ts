@@ -5,10 +5,16 @@ import LoxFunction from "./LoxFunction";
 
 export default class LoxClass implements LoxCallable {
   name: string;
+  superclass: LoxClass;
   private methods: Map<string, LoxFunction>;
 
-  constructor(name: string, methods: Map<string, LoxFunction>) {
+  constructor(
+    name: string,
+    superclass: LoxClass,
+    methods: Map<string, LoxFunction>
+  ) {
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
 
