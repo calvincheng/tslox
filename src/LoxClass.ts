@@ -22,6 +22,9 @@ export default class LoxClass implements LoxCallable {
     if (this.methods.has(name)) {
       return this.methods.get(name)!;
     }
+    if (this.superclass !== null) {
+      return this.superclass.findMethod(name);
+    }
     return null;
   }
 
