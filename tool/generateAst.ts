@@ -17,7 +17,8 @@
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
- *                | IDENTIFIER ;
+ *                | IDENTIFIER
+ *                | "super" "." IDENTIFIER ;
  * ---------------------------------------------------------------
  * (Stmt)
  * program        → declaration* EOF ;
@@ -204,6 +205,10 @@ function main() {
       { name: "object", type: "Expr" },
       { name: "name", type: "Token" },
       { name: "value", type: "Expr" },
+    ],
+    Super: [
+      { name: "keyword", type: "Token" },
+      { name: "method", type: "Token" },
     ],
     This: [{ name: "keyword", type: "Token" }],
     Unary: [
