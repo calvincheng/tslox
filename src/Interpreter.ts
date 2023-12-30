@@ -27,6 +27,7 @@ import {
   Class,
   Get,
   Set,
+  Super,
   This,
   StmtVisitor,
 } from "../src/Ast";
@@ -293,6 +294,11 @@ export default class Interpreter
     // methods
     this.environment.define(stmt.name.lexeme, null);
 
+    if (stmt.superclass !== null) {
+      this.environment = new Environment(this.environment);
+      this.environment.define("super", superclass);
+    }
+
     const methods = new Map<string, LoxFunction>();
     for (let method of stmt.methods) {
       const func = new LoxFunction(
@@ -308,6 +314,11 @@ export default class Interpreter
       superclass as LoxClass,
       methods
     );
+
+    if (superclass !== null) {
+      this.environment = this.environment.enclosing!;
+    }
+
     this.environment.assign(stmt.name, klass);
   }
 
