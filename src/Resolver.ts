@@ -49,6 +49,7 @@ export enum FunctionType {
 export enum ClassType {
   NONE = "NONE",
   CLASS = "CLASS",
+  SUBCLASS = "SUBCLASS",
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -89,6 +90,7 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     if (stmt.superclass !== null) {
+      this.currentClass = ClassType.SUBCLASS;
       this.resolveExpr(stmt.superclass);
     }
 
@@ -213,6 +215,17 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitSuperExpr(expr: Super) {
+    if (this.currentClass === ClassType.NONE) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'super' outside of a class."
+      );
+    } else if (this.currentClass !== ClassType.SUBCLASS) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'super' in a class with no superclass."
+      );
+    }
     this.resolveLocal(expr, expr.keyword);
   }
 
