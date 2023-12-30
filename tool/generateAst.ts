@@ -17,7 +17,8 @@
  * primary        → "true" | "false" | "nil"
  *                | NUMBER | STRING
  *                | "(" expression ")"
- *                | IDENTIFIER ;
+ *                | IDENTIFIER
+ *                | "super" "." IDENTIFIER ;
  * ---------------------------------------------------------------
  * (Stmt)
  * program        → declaration* EOF ;
@@ -27,7 +28,7 @@
  *                | varDecl
  *                | statement ;
  *
- * classDecl      → "class" IDENTIFIER "{" function* "}" ;
+ * classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
  * funDecl        → "fun" function;
  * function       → IDENTIFIER "(" parameters? ")" block;
  * parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -205,6 +206,10 @@ function main() {
       { name: "name", type: "Token" },
       { name: "value", type: "Expr" },
     ],
+    Super: [
+      { name: "keyword", type: "Token" },
+      { name: "method", type: "Token" },
+    ],
     This: [{ name: "keyword", type: "Token" }],
     Unary: [
       { name: "operator", type: "Token" },
@@ -216,6 +221,7 @@ function main() {
     Block: [{ name: "statements", type: "Stmt[]" }],
     Class: [
       { name: "name", type: "Token" },
+      { name: "superclass", type: "Variable | null" },
       { name: "methods", type: "Function[]" },
     ],
     Expression: [{ name: "expression", type: "Expr" }],

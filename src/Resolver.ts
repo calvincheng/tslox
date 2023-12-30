@@ -28,6 +28,7 @@ import {
   Class,
   Get,
   Set,
+  Super,
   This,
   StmtVisitor,
 } from "../src/Ast";
@@ -48,6 +49,7 @@ export enum FunctionType {
 export enum ClassType {
   NONE = "NONE",
   CLASS = "CLASS",
+  SUBCLASS = "SUBCLASS",
 }
 
 export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -77,6 +79,26 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    if (
+      stmt.superclass !== null &&
+      stmt.name.lexeme === stmt.superclass.name.lexeme
+    ) {
+      throw new ResolverError(
+        stmt.superclass.name,
+        "A class can't inherit from itself"
+      );
+    }
+
+    if (stmt.superclass !== null) {
+      this.currentClass = ClassType.SUBCLASS;
+      this.resolveExpr(stmt.superclass);
+    }
+
+    if (stmt.superclass !== null) {
+      this.beginScope();
+      this.scopes.peek().set("super", true);
+    }
+
     this.beginScope();
     this.scopes.peek().set("this", true);
 
@@ -88,6 +110,10 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+
+    if (stmt.superclass !== null) {
+      this.endScope();
+    }
 
     this.currentClass = enclosingClass;
   }
@@ -186,6 +212,21 @@ export default class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitSetExpr(expr: Set) {
     this.resolveExpr(expr.value);
     this.resolveExpr(expr.object);
+  }
+
+  visitSuperExpr(expr: Super) {
+    if (this.currentClass === ClassType.NONE) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'super' outside of a class."
+      );
+    } else if (this.currentClass !== ClassType.SUBCLASS) {
+      throw new ResolverError(
+        expr.keyword,
+        "Can't use 'super' in a class with no superclass."
+      );
+    }
+    this.resolveLocal(expr, expr.keyword);
   }
 
   visitThisExpr(expr: This) {

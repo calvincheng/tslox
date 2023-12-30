@@ -26,6 +26,7 @@ export interface ExprVisitor<R> {
   visitLiteralExpr: (expr: Literal) => R;
   visitLogicalExpr: (expr: Logical) => R;
   visitSetExpr: (expr: Set) => R;
+  visitSuperExpr: (expr: Super) => R;
   visitThisExpr: (expr: This) => R;
   visitUnaryExpr: (expr: Unary) => R;
   visitVariableExpr: (expr: Variable) => R;
@@ -147,6 +148,20 @@ export class Set implements Expr {
   }
 }
 
+export class Super implements Expr {
+  keyword: Token;
+  method: Token;
+
+  constructor(keyword: Token, method: Token) {
+    this.keyword = keyword;
+    this.method = method;
+  }
+
+  accept<R>(visitor: ExprVisitor<R>): R {
+    return visitor.visitSuperExpr(this);
+  }
+}
+
 export class This implements Expr {
   keyword: Token;
 
@@ -217,10 +232,12 @@ export class Block implements Stmt {
 
 export class Class implements Stmt {
   name: Token;
+  superclass: Variable | null;
   methods: Function[];
 
-  constructor(name: Token, methods: Function[]) {
+  constructor(name: Token, superclass: Variable | null, methods: Function[]) {
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
 

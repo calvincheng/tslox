@@ -34,6 +34,7 @@ import {
   Class,
   Get,
   Set,
+  Super,
   This,
 } from "./Ast";
 import { ParseError } from "./ErrorHandler";
@@ -203,6 +204,13 @@ export class Parser {
 
   private classDeclaration(): Stmt {
     const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+
+    let superclass: Variable | null = null;
+    if (this.match(TokenType.LESS)) {
+      this.consume(TokenType.IDENTIFIER, "Expect superclass name.");
+      superclass = new Variable(this.previous());
+    }
+
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 
     let methods: Function[] = [];
@@ -210,7 +218,7 @@ export class Parser {
       methods.push(this.function("method"));
     }
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-    return new Class(name, methods);
+    return new Class(name, superclass, methods);
   }
 
   /**
@@ -399,6 +407,15 @@ export class Parser {
     if (this.match(TokenType.NIL)) return new Literal(null);
     if (this.match(TokenType.NUMBER, TokenType.STRING)) {
       return new Literal(this.previous().literal);
+    }
+    if (this.match(TokenType.SUPER)) {
+      const keyword: Token = this.previous();
+      this.consume(TokenType.DOT, "Expect '.' after 'super'.");
+      const method = this.consume(
+        TokenType.IDENTIFIER,
+        "Expect superclass method name."
+      );
+      return new Super(keyword, method);
     }
     if (this.match(TokenType.THIS)) return new This(this.previous());
     if (this.match(TokenType.IDENTIFIER)) {
