@@ -99,6 +99,20 @@ export default class Interpreter
     return value;
   }
 
+  visitSuperExpr(expr: Super): LoxObject {
+    const distance = this.locals.get(expr)!;
+    const superclass = this.environment.getAt(distance, "super") as LoxClass;
+    // The environment where “this” is bound is always right inside the
+    // environment where we store “super”.
+    const object = this.environment.getAt(distance - 1, "this") as LoxInstance;
+    const method = superclass.findMethod(expr.method.lexeme);
+    if (method !== null) return method.bind(object);
+    throw new RuntimeError(
+      expr.method,
+      `Undefined property '${expr.method.lexeme}'.`
+    );
+  }
+
   visitThisExpr(expr: This): LoxObject {
     return this.lookUpVariable(expr.keyword, expr);
   }
